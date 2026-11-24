@@ -76,3 +76,28 @@
     animation-play-state: paused;
   }
 }
+
+/* 화면 배경으로 쓸 때: 그림은 옅게, 눈은 또렷하게 */
+.xmas__dim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(243, 249, 253, 0.62) 0%,
+    rgba(243, 249, 253, 0.8) 55%,
+    rgba(243, 249, 253, 0.9) 100%
+  );
+}
+.xmas--bg .xmas__snow {
+  /* 눈 영역만 따로 그려서 나머지 화면을 다시 그리지 않게 합니다 */
+  contain: strict;
+}
+.xmas--bg .xmas__flake {
+  /* 밝은 배경 위에서도 보이도록 가장자리를 옅은 하늘색으로 (그림자 대신 그라데이션이라 가벼움) */
+  background: radial-gradient(
+    circle,
+    #ffffff 0 38%,
+    rgba(190, 222, 246, 0.95) 52%,
+    rgba(190, 222, 246, 0) 72%
+  );
+}

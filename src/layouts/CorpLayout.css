@@ -1,97 +1,32 @@
+/* 기업 화면 틀: 사이드바 없이, 위쪽 얇은 바(홈 제외) + 화면 아래 떠 있는 메뉴(독) */
 .corp {
   display: flex;
+  flex-direction: column;
+  position: relative;
   min-height: 100vh;
+  background: #f3f9fd;
+}
+/* 화면 전체에 고정된 배경 그림 (스크롤해도 제자리) */
+.xmas.corp__bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.corp > .topbar,
+.corp > .corp__body {
+  position: relative;
+  z-index: 1;
+}
+.corp > .topbar {
+  position: sticky;
+  z-index: 5;
 }
 .corp .spacer {
   flex: 1;
 }
 
-/* sidebar */
-.side {
-  position: sticky;
-  top: 0;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  width: 216px;
-  height: 100vh;
-  padding: 30px 20px 24px;
-  background: var(--panel);
-}
-.side .logo__name {
-  font-size: 19px;
-}
-.side .logo__sub {
-  font-size: 10.5px;
-}
-.side__ws {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 16px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.7);
-}
-.side__ws b {
-  font-size: 16px;
-}
-.side__menu {
-  display: flex;
-  flex-direction: column;
-}
-.side__item {
-  position: relative;
-  display: block;
-  margin-bottom: 9px;
-  padding: 13px 16px;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--navy);
-  text-decoration: none;
-}
-/* 메뉴 구분선: 각 메뉴 아래에 은은한 선 */
-.side__item::after {
-  content: '';
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: -5px;
-  height: 1px;
-  background: rgba(11, 46, 89, 0.09);
-}
-.side__item:hover {
-  background: rgba(255, 255, 255, 0.55);
-}
-.side__item.active {
-  background: #c4e3f7;
-  font-weight: 700;
-}
-.side__msg b {
-  display: block;
-  margin-bottom: 6px;
-}
-.side__logout {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 0 0;
-  border: 0;
-  border-top: 1px solid rgba(11, 46, 89, 0.09);
-  background: none;
-  color: var(--sub);
-  font-size: 14px;
-}
-
-/* main */
-.corp__main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
+/* 상단 바 (홈 외 화면) */
 .topbar {
   position: sticky;
   top: 0;
@@ -99,9 +34,28 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  height: 76px;
-  padding: 0 32px;
+  height: 68px;
+  padding: 0 40px;
   border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.97);
+}
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+}
+.topbar__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
   background: var(--white);
 }
 .topbar__title {
@@ -109,12 +63,13 @@
 }
 .topbar__sep {
   width: 1px;
-  height: 24px;
+  height: 22px;
   background: var(--line-strong);
 }
 .topbar__bell {
   position: relative;
   display: flex;
+  align-items: center;
   color: var(--sub);
 }
 .topbar__count {
@@ -151,19 +106,83 @@
   color: var(--blue);
   font-weight: 700;
 }
+
+/* 본문 */
 .corp__body {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding: 32px;
-  background: #f3f9fd;
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  /* 아래 떠 있는 메뉴에 가려지지 않도록 아래 여백을 넉넉히 */
+  padding: 32px 40px 128px;
+}
+.corp--home .corp__body {
+  max-width: none;
+  padding: 0 0 128px;
 }
 .corp__foot {
   margin-top: auto;
   padding-top: 16px;
   font-size: 13px;
   color: var(--sub);
+}
+.corp--home .corp__foot {
+  width: 100%;
+  max-width: 1320px;
+  margin: auto auto 0;
+  padding: 16px 40px 0;
+}
+
+/* 화면 아래 떠 있는 메뉴 (독) */
+.dock {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 20px;
+  background: #042c53;
+  box-shadow: 0 14px 34px rgba(4, 44, 83, 0.28);
+  transform: translateX(-50%);
+}
+.dock__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 72px;
+  padding: 8px 12px 7px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #b5d4f4;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.dock__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--white);
+}
+.dock__item.active {
+  background: #e6f1fb;
+  color: #042c53;
+  font-weight: 700;
+}
+.dock__sep {
+  width: 1px;
+  height: 32px;
+  margin: 0 4px;
+  background: rgba(181, 212, 244, 0.25);
 }
 
 .page-head {

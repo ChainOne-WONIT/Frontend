@@ -529,9 +529,11 @@ export function mockFund(): Promise<FundOverview> {
     grade: {
       label: '안정',
       pd: 1.2,
-      factors: [
-        { name: '업력 28년', effect: -0.8 },
-        { name: '부채비율 230%', effect: 0.3 },
+      score: 28,
+      reasons: [
+        { text: '부채비율이 상승했습니다. (205% → 230%)', kind: 'warn' },
+        { text: '최근 매출액이 전년 동기 대비 4% 감소했습니다.', kind: 'warn' },
+        { text: '업력 28년, 연체 없이 거래를 이어 오고 있습니다.', kind: 'good' },
       ],
     },
     applicable: received

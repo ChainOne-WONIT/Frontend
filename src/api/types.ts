@@ -183,8 +183,12 @@ export interface FundOverview {
   limits: CounterpartyLimit[];
   grade: {
     label: '안정' | '관찰' | '제외';
+    /** 추정 부실확률 (%) */
     pd: number;
-    factors: { name: string; effect: number }[];
+    /** 신용위험 점수 0~100 (높을수록 위험) */
+    score: number;
+    /** 판정 근거 문장. warn = 위험을 높인 항목, good = 위험을 낮춘 항목 */
+    reasons: { text: string; kind: 'warn' | 'good' }[];
   };
   applicable: {
     orderId: string;

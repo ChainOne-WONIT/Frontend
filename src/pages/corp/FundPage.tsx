@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { getFund, requestLoan } from '../../api/corp';
-import type { LimitStatus } from '../../api/types';
+import type { FundOverview, LimitStatus } from '../../api/types';
+import { Icon } from '../../components/Icon';
+import { RiskGauge } from '../../components/RiskGauge';
 import { Card, ErrorBox, Loading, Note, Pill, StatusPill } from '../../components/ui';
 import { PageHead } from '../../layouts/CorpLayout';
 import { won, type PillTone } from '../../lib/format';
@@ -13,6 +15,12 @@ const LIMIT_LABEL: Record<LimitStatus, [string, PillTone]> = {
   REVIEW: ['심사 중', 'warn'],
   EXCLUDED: ['제외', 'bad'],
   NONE: ['미신청', 'gray'],
+};
+
+const GRADE_TONE: Record<FundOverview['grade']['label'], PillTone> = {
+  안정: 'ok',
+  관찰: 'warn',
+  제외: 'bad',
 };
 
 export function FundPage() {
@@ -38,8 +46,6 @@ export function FundPage() {
       setBusy('');
     }
   };
-
-  const maxEffect = Math.max(...data.grade.factors.map((f) => Math.abs(f.effect)), 1);
 
   return (
     <>
@@ -98,30 +104,22 @@ export function FundPage() {
           </ul>
         </Card>
 
-        <Card title="내 등급">
-          <div className="grade">
-            <b className={`grade__label grade__label--${data.grade.label}`}>{data.grade.label}</b>
-            <span className="muted">예측 부실확률 {data.grade.pd}%</span>
+        <Card title="신용위험 평가" className="risk-card">
+          <RiskGauge score={data.grade.score} />
+          <div className="risk__summary">
+            <Pill tone={GRADE_TONE[data.grade.label]}>{data.grade.label}</Pill>
+            <span>
+              추정 부실확률 <b>{data.grade.pd}%</b>
+            </span>
           </div>
-          <p className="small" style={{ margin: '14px 0 8px', fontWeight: 700 }}>
-            판정에 크게 영향을 준 항목
-          </p>
-          {data.grade.factors.map((f) => (
-            <div key={f.name} className="factor">
-              <div className="factor__row">
-                <span>{f.name}</span>
-                <span className="small muted">{f.effect > 0 ? '위험을 높임' : '위험을 낮춤'}</span>
-              </div>
-              <div className="bar">
-                <i
-                  style={{
-                    width: `${(Math.abs(f.effect) / maxEffect) * 100}%`,
-                    background: f.effect > 0 ? '#f04438' : '#12b76a',
-                  }}
-                />
-              </div>
-            </div>
-          ))}
+          <ul className="risk__reasons">
+            {data.grade.reasons.map((r) => (
+              <li key={r.text} className={`risk__reason risk__reason--${r.kind}`}>
+                <Icon name={r.kind === 'warn' ? 'alert' : 'check'} size={17} />
+                {r.text}
+              </li>
+            ))}
+          </ul>
           <div style={{ marginTop: 14 }}>
             <Note>
               등급은 본인과 은행만 봅니다. 거래처에는 보이지 않고, 대출 금액을 깎지 않습니다.

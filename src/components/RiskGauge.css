@@ -1,0 +1,23 @@
+.gauge {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+}
+.gauge__score {
+  font-size: 44px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  stroke: #ffffff;
+  stroke-width: 6px;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
+.gauge__tick {
+  fill: #8a9db0;
+  font-size: 12px;
+}
+.gauge__max {
+  fill: #4a6a8a;
+  font-size: 15px;
+}

@@ -84,10 +84,31 @@ const FLAKES = Array.from({ length: FLAKE_COUNT }, (_, i) => {
   };
 });
 
-export function ChristmasArt({ className = '' }: { className?: string }) {
+// 화면 전체 배경용: 가볍게 그리도록 번짐(blur) 효과를 빼고 조금 크게
+const BG_FLAKES = FLAKES.map((f) => ({ ...f, blur: 0, size: f.size * 1.3 }));
+
+/**
+ * @param background true면 화면 배경용: 그림 위에 옅은 막을 덮어 글자가 잘 읽히게 하고,
+ *   눈은 그 막 위에서 내려 그대로 보입니다.
+ */
+export function ChristmasArt({
+  className = '',
+  background = false,
+}: {
+  className?: string;
+  background?: boolean;
+}) {
+  const flakes = background ? BG_FLAKES : FLAKES;
   return (
-    <div className={`xmas ${className}`}>
-      <img className="xmas__img" src={characters} alt="산타모자를 쓴 체인원 캐릭터들과 내리는 눈" />
+    <div
+      className={`xmas${background ? ' xmas--bg' : ''} ${className}`}
+      aria-hidden={background || undefined}
+    >
+      <img
+        className="xmas__img"
+        src={characters}
+        alt={background ? '' : '산타모자를 쓴 체인원 캐릭터들과 내리는 눈'}
+      />
       <svg
         className="xmas__hats"
         viewBox="0 0 524 381"
@@ -98,8 +119,9 @@ export function ChristmasArt({ className = '' }: { className?: string }) {
           <SantaHat key={i} x={x} y={y} w={w} tilt={tilt} />
         ))}
       </svg>
+      {background && <div className="xmas__dim" />}
       <div className="xmas__snow" aria-hidden="true">
-        {FLAKES.map((f, i) => (
+        {flakes.map((f, i) => (
           <span
             key={i}
             className="xmas__fall"

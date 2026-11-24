@@ -1,16 +1,17 @@
 import type { ReactNode } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
-import { Icon } from '../components/Icon';
-import { Logo } from '../components/ui';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
+import logoMark from '../assets/logo-mark.svg';
+import { ChristmasArt } from '../components/ChristmasArt';
+import { Icon, type IconName } from '../components/Icon';
 import { useAuth } from '../lib/auth-context';
 import './CorpLayout.css';
 
-const MENU = [
-  { to: '/corp', label: '홈', end: true },
-  { to: '/corp/orders', label: '발주' },
-  { to: '/corp/fund', label: '생산자금' },
-  { to: '/corp/alerts', label: '경보' },
-  { to: '/corp/me', label: '내 정보' },
+const MENU: { to: string; label: string; icon: IconName; end?: boolean }[] = [
+  { to: '/corp', label: '홈', icon: 'home', end: true },
+  { to: '/corp/orders', label: '발주', icon: 'doc' },
+  { to: '/corp/fund', label: '생산자금', icon: 'bank' },
+  { to: '/corp/alerts', label: '경보', icon: 'bell' },
+  { to: '/corp/me', label: '내 정보', icon: 'user' },
 ];
 
 const TITLES: [RegExp, string][] = [
@@ -28,6 +29,8 @@ export function CorpLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const title = TITLES.find(([re]) => re.test(pathname))?.[1] ?? '';
+  // 홈은 화면 위쪽을 큰 히어로가 채우므로 상단 바를 따로 그리지 않습니다.
+  const isHome = pathname === '/corp' || pathname === '/corp/';
 
   const logout = async () => {
     await signOut();
@@ -35,41 +38,20 @@ export function CorpLayout() {
   };
 
   return (
-    <div className="corp">
-      <aside className="side">
-        <Logo size={44} subtitle="공급망 생산자금 플랫폼" />
-        <div className="side__ws">
-          <span className="small muted">기업 워크스페이스</span>
-          <b>{user?.companyName}</b>
-        </div>
-        <nav className="side__menu" aria-label="기업 메뉴">
-          {MENU.map((m) => (
-            <NavLink key={m.to} to={m.to} end={m.end} className="side__item">
-              {m.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="spacer" />
-        <div className="side__msg">
-          <b>이어진 만큼 든든하게</b>
-          <p className="small muted">
-            우리 기업의 오늘을 확인하고
-            <br />
-            다음 발주를 준비하세요.
-          </p>
-        </div>
-        <button type="button" className="side__logout" onClick={logout}>
-          <Icon name="logout" size={18} />
-          로그아웃
-        </button>
-      </aside>
-
-      <div className="corp__main">
+    <div className={`corp${isHome ? ' corp--home' : ''}`}>
+      {/* 크리스마스 시즌 배경: 로그인 화면과 같은 그림과 눈. 시즌이 끝나면 이 줄만 지우면 됩니다. */}
+      <ChristmasArt background className="corp__bg" />
+      {!isHome && (
         <header className="topbar">
+          <Link to="/corp" className="topbar__brand">
+            <span className="topbar__logo">
+              <img src={logoMark} alt="" width={28} height={22} />
+            </span>
+            Chain-One
+          </Link>
+          <span className="topbar__sep" />
           <b className="topbar__title">{title}</b>
           <span className="spacer" />
-          <span className="small muted">최근 접속 2026.11.23 09:30</span>
-          <span className="topbar__sep" />
           <span className="topbar__bell" aria-label="알림 3건">
             <Icon name="bell" size={20} />
             <span className="topbar__count">3</span>
@@ -82,11 +64,26 @@ export function CorpLayout() {
             </span>
           </span>
         </header>
-        <main className="corp__body">
-          <Outlet />
-          <footer className="corp__foot">© Chain-One</footer>
-        </main>
-      </div>
+      )}
+      <main className="corp__body">
+        <Outlet />
+        <footer className="corp__foot">© Chain-One</footer>
+      </main>
+
+      {/* 화면 아래 가운데에 떠 있는 메뉴 */}
+      <nav className="dock" aria-label="기업 메뉴">
+        {MENU.map((m) => (
+          <NavLink key={m.to} to={m.to} end={m.end} className="dock__item">
+            <Icon name={m.icon} size={20} />
+            <span>{m.label}</span>
+          </NavLink>
+        ))}
+        <span className="dock__sep" />
+        <button type="button" className="dock__item" onClick={logout}>
+          <Icon name="logout" size={20} />
+          <span>로그아웃</span>
+        </button>
+      </nav>
     </div>
   );
 }

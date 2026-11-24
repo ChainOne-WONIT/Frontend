@@ -77,34 +77,50 @@
   grid-column: 1 / -1;
 }
 
-.grade {
+/* 신용위험 평가 카드 (생산자금 화면) */
+.risk-card .card__head {
+  margin: 0 -24px 18px;
+  padding: 0 24px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.risk__summary {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 16px;
+  color: #374151;
 }
-.grade__label {
-  font-size: 30px;
+.risk__summary b {
+  font-size: 17px;
+  color: var(--navy);
 }
-.grade__label--안정 {
-  color: var(--green);
-}
-.grade__label--관찰 {
-  color: var(--amber);
-}
-.grade__label--제외 {
-  color: var(--red);
-}
-.factor {
+.risk__reasons {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
 }
-.factor__row {
+.risk__reason {
   display: flex;
-  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
   font-size: 14px;
-  font-weight: 500;
+  line-height: 1.45;
+  color: #374151;
+}
+.risk__reason svg {
+  flex: none;
+  margin-top: 1px;
+}
+.risk__reason--warn svg {
+  color: #e8772e;
+}
+.risk__reason--good svg {
+  color: var(--green);
 }
 
 .stage {
