@@ -194,6 +194,14 @@ a {
   background: var(--gray-bg);
   color: var(--gray);
 }
+.pill--violet {
+  background: #f1edff;
+  color: #5b3cc4;
+}
+.pill--teal {
+  background: #e3f7f5;
+  color: #0e7c74;
+}
 
 .note {
   display: flex;

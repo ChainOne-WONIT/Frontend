@@ -33,18 +33,19 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   CANCELED: '취소',
 };
 
+/** 진행 단계마다 색을 다르게: 수락 대기(주황) → 수락 및 납품 등록(보라) → 수령 확인(파랑) → 지급 등록(청록) → 지급 완료(초록) */
 export const STATUS_TONE: Record<OrderStatus, PillTone> = {
   PENDING: 'warn',
-  ACCEPTED: 'default',
-  DELIVERED: 'default',
+  ACCEPTED: 'violet',
+  DELIVERED: 'violet',
   RECEIVED: 'default',
-  PAID: 'default',
+  PAID: 'teal',
   COMPLETED: 'ok',
   REJECTED: 'bad',
   CANCELED: 'gray',
 };
 
-export type PillTone = 'default' | 'warn' | 'ok' | 'bad' | 'gray';
+export type PillTone = 'default' | 'warn' | 'ok' | 'bad' | 'gray' | 'violet' | 'teal';
 
 /**
  * 화면에 보이는 진행 단계. 수락과 납품 등록은 한 단계("수락 및 납품 등록")로 묶습니다.
