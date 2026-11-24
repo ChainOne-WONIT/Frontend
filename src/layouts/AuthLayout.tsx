@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import characters from '../assets/characters.png';
 import logoMark from '../assets/logo-mark.svg';
+import { ChristmasArt } from '../components/ChristmasArt';
 import './AuthLayout.css';
 
 /** 로그인 화면: 왼쪽 브랜드 패널 + 오른쪽 로그인 영역 */
@@ -18,7 +18,8 @@ export function AuthLayout({ top, children }: { top?: ReactNode; children: React
           </div>
         </div>
         <div className="auth__hero">
-          <img className="auth__art" src={characters} alt="체인원 캐릭터들" />
+          {/* 크리스마스 시즌 그림. 시즌이 끝나면 characters.png 이미지로 되돌리면 됩니다. */}
+          <ChristmasArt className="auth__art" />
           <p className="auth__caption">
             체인원과 함께!
             <br />

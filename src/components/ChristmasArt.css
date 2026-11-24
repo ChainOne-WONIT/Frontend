@@ -1,0 +1,78 @@
+.xmas {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  /* 눈이 그림 높이만큼 떨어지도록 그림 크기를 기준(cqh)으로 씁니다 */
+  container-type: size;
+}
+.xmas__img,
+.xmas__hats {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.xmas__img {
+  object-fit: cover;
+  /* 겨울 느낌으로 살짝 차갑게 */
+  filter: saturate(0.95) brightness(1.02);
+}
+.xmas__hats {
+  filter: drop-shadow(0 2px 2px rgba(11, 46, 89, 0.18));
+}
+.xmas__snow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* 바깥: 위에서 아래로 일정한 속도로 천천히 떨어짐 */
+.xmas__fall {
+  position: absolute;
+  top: 0;
+  animation: xmas-fall linear infinite;
+  will-change: transform;
+}
+/* 안쪽: 좌우로 부드럽게 살랑임 */
+.xmas__flake {
+  display: block;
+  border-radius: 50%;
+  /* 가장자리가 부드러운 눈송이 */
+  background: radial-gradient(
+    circle,
+    #ffffff 0 45%,
+    rgba(255, 255, 255, 0.7) 60%,
+    rgba(255, 255, 255, 0) 72%
+  );
+  animation: xmas-sway ease-in-out infinite alternate;
+}
+@keyframes xmas-fall {
+  0% {
+    transform: translate3d(0, -16px, 0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, calc(100cqh + 8px), 0);
+    opacity: 0;
+  }
+}
+@keyframes xmas-sway {
+  from {
+    transform: translate3d(calc(var(--sway, 12px) * -1), 0, 0) rotate(-20deg);
+  }
+  to {
+    transform: translate3d(var(--sway, 12px), 0, 0) rotate(20deg);
+  }
+}
+/* 움직임 줄이기 설정을 켠 사용자에게는 눈을 멈춘 채로 보여 줍니다 */
+@media (prefers-reduced-motion: reduce) {
+  .xmas__fall,
+  .xmas__flake {
+    animation-play-state: paused;
+  }
+}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import characters from '../../assets/characters.png';
+import { ChristmasArt } from '../../components/ChristmasArt';
 import type { ConsentKey, SignupResponse } from '../../api/types';
 import { Icon, type IconName } from '../../components/Icon';
 import { Logo } from '../../components/ui';
@@ -55,7 +55,8 @@ export function SignupPage() {
             체인원 협력사 회원가입 페이지입니다. 원청 기업은 은행에서 계정을 발급해 드립니다.
           </p>
         </div>
-        <img className="signup__art" src={characters} alt="" />
+        {/* 크리스마스 시즌 그림. 시즌이 끝나면 characters.png 이미지로 되돌리면 됩니다. */}
+        <ChristmasArt className="signup__art" />
       </section>
 
       <main className="signup__body">
