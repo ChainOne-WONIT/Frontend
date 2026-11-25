@@ -3,6 +3,11 @@ import { ApiError, mockDelay } from '../api/client';
 import type {
   BankLoginResponse,
   BankUser,
+  Chain,
+  ChainQuery,
+  ChainTier,
+  AlertStage,
+  OrderStatus,
   BankSummary,
   ChainView,
   CompanyReviewInfo,
@@ -535,92 +540,140 @@ export function mockUpdateCompanyReview(
 }
 
 // ---------- 체인 ----------
-const chains: Record<string, Omit<ChainView, 'asOf' | 'roots' | 'rootId'>> = {
-  X: {
-    orderTotal: 1_500_000_000,
-    loanBalance: 910_000_000,
-    nodes: [
-      { name: '한성모터스(주)', tier: '시작 기업', stage: '정상' },
-      { name: '에이스정밀(주)', tier: '1차', stage: '정상' },
-      { name: '청운테크(주)', tier: '2차', stage: '관심' },
-      { name: '동진산업(주)', tier: '3차', stage: '주의' },
-    ],
-    links: [
-      { orderId: 'PO-1001', amount: 1_000_000_000 },
-      { orderId: 'PO-1002', amount: 400_000_000 },
-      { orderId: 'PO-1003', amount: 100_000_000 },
-    ],
-    rows: [
-      {
-        orderId: 'PO-1001',
-        from: '한성모터스(주)',
-        to: '에이스정밀(주)',
-        amount: 1_000_000_000,
-        status: 'ACCEPTED',
-        loan: { id: 'LN-1', amount: 500_000_000, statusLabel: '실행' },
-      },
-      {
-        orderId: 'PO-1002',
-        from: '에이스정밀(주)',
-        to: '청운테크(주)',
-        amount: 400_000_000,
-        status: 'PENDING',
-        loan: { id: 'LN-14', amount: 320_000_000, statusLabel: '승인 대기' },
-      },
-      {
-        orderId: 'PO-1003',
-        from: '청운테크(주)',
-        to: '동진산업(주)',
-        amount: 100_000_000,
-        status: 'ACCEPTED',
-        loan: { id: 'LN-7', amount: 80_000_000, statusLabel: '연체' },
-      },
-      {
-        orderId: 'PO-1008',
-        from: '한성모터스(주)',
-        to: '에이스정밀(주)',
-        amount: 500_000_000,
-        status: 'DELIVERED',
-      },
-    ],
-  },
-  M: {
-    orderTotal: 800_000_000,
-    loanBalance: 300_000_000,
-    nodes: [
-      { name: '미래모빌리티(주)', tier: '시작 기업', stage: '정상' },
-      { name: '한성모터스(주)', tier: '1차', stage: '정상' },
-      { name: '대광금속(주)', tier: '2차', stage: '정상' },
-    ],
-    links: [
-      { orderId: 'PO-2018', amount: 600_000_000 },
-      { orderId: 'PO-2044', amount: 200_000_000 },
-    ],
-    rows: [
-      {
-        orderId: 'PO-2018',
-        from: '미래모빌리티(주)',
-        to: '한성모터스(주)',
-        amount: 600_000_000,
-        status: 'RECEIVED',
-        loan: { id: 'LN-9', amount: 300_000_000, statusLabel: '실행' },
-      },
-      {
-        orderId: 'PO-2044',
-        from: '한성모터스(주)',
-        to: '대광금속(주)',
-        amount: 200_000_000,
-        status: 'ACCEPTED',
-      },
-    ],
-  },
-};
-const ROOTS = [
-  { id: 'X', name: '한성모터스(주)' },
-  { id: 'M', name: '미래모빌리티(주)' },
+type Order = [
+  orderId: string,
+  amount: number,
+  status: OrderStatus,
+  loan?: [string, number, string],
 ];
 
-export function mockChain(rootId?: string): Promise<ChainView> {
-  const id = rootId && chains[rootId] ? rootId : 'X';
-  return mockDelay({ asOf: AS_OF, roots: ROOTS, rootId: id, ...chains[id] });
+/** 기업 이름과 경보 단계, 그 사이 발주로 체인 하나를 만듭니다. 구분은 순서대로 시작 기업·1차·2차·3차. */
+function chain(id: string, nodes: [string, AlertStage][], orders: Order[]): Chain {
+  const tiers: ChainTier[] = ['시작 기업', '1차', '2차', '3차'];
+  return {
+    id,
+    rootName: nodes[0][0],
+    orderTotal: orders[0][1],
+    loanBalance: orders.reduce((s, o) => s + (o[3]?.[1] ?? 0), 0),
+    nodes: nodes.map(([name, stage], i) => ({ name, tier: tiers[i], stage })),
+    links: orders.map(([orderId]) => ({ orderId })),
+    rows: orders.map(([orderId, amount, status, loan], i) => ({
+      orderId,
+      from: nodes[i][0],
+      to: nodes[i + 1][0],
+      amount,
+      status,
+      loan: loan && { id: loan[0], amount: loan[1], statusLabel: loan[2] },
+    })),
+  };
+}
+
+const HS = '한성모터스(주)';
+const chains: Chain[] = [
+  chain(
+    'CH-1',
+    [
+      [HS, '정상'],
+      ['에이스정밀(주)', '정상'],
+      ['청운테크(주)', '관심'],
+      ['동진산업(주)', '주의'],
+    ],
+    [
+      ['PO-1001', 1_000_000_000, 'ACCEPTED', ['LN-1', 500_000_000, '실행']],
+      ['PO-1002', 400_000_000, 'PENDING', ['LN-14', 320_000_000, '승인 대기']],
+      ['PO-1003', 100_000_000, 'ACCEPTED', ['LN-7', 80_000_000, '연체']],
+    ],
+  ),
+  chain(
+    'CH-2',
+    [
+      [HS, '정상'],
+      ['대광금속(주)', '정상'],
+      ['세림소재(주)', '정상'],
+    ],
+    [
+      ['PO-1012', 240_000_000, 'ACCEPTED', ['LN-21', 150_000_000, '실행']],
+      ['PO-1019', 90_000_000, 'DELIVERED'],
+    ],
+  ),
+  chain(
+    'CH-3',
+    [
+      ['미래모빌리티(주)', '정상'],
+      [HS, '정상'],
+      ['대광금속(주)', '정상'],
+    ],
+    [
+      ['PO-2018', 600_000_000, 'RECEIVED', ['LN-9', 300_000_000, '실행']],
+      ['PO-2044', 200_000_000, 'ACCEPTED'],
+    ],
+  ),
+  chain(
+    'CH-4',
+    [
+      ['대한오토(주)', '정상'],
+      [HS, '정상'],
+      ['세진테크(주)', '관심'],
+      ['우진정공(주)', '정상'],
+    ],
+    [
+      ['PO-2031', 600_000_000, 'DELIVERED', ['LN-12', 600_000_000, '실행']],
+      ['PO-2052', 200_000_000, 'ACCEPTED', ['LN-17', 80_000_000, '실행']],
+      ['PO-2060', 80_000_000, 'PENDING'],
+    ],
+  ),
+  chain(
+    'CH-5',
+    [
+      ['그린EV(주)', '정상'],
+      [HS, '정상'],
+      ['청운테크(주)', '관심'],
+      ['동진산업(주)', '주의'],
+    ],
+    [
+      ['PO-2071', 900_000_000, 'ACCEPTED', ['LN-22', 400_000_000, '실행']],
+      ['PO-2075', 300_000_000, 'ACCEPTED', ['LN-23', 200_000_000, '실행']],
+      ['PO-2079', 60_000_000, 'PENDING'],
+    ],
+  ),
+  chain(
+    'CH-6',
+    [
+      ['동방모빌리티(주)', '정상'],
+      ['에이스정밀(주)', '정상'],
+      [HS, '정상'],
+    ],
+    [
+      ['PO-3002', 500_000_000, 'ACCEPTED', ['LN-25', 250_000_000, '실행']],
+      ['PO-3008', 150_000_000, 'DELIVERED'],
+    ],
+  ),
+  chain(
+    'CH-7',
+    [
+      ['서해조선(주)', '정상'],
+      ['남부중공업(주)', '관심'],
+      ['에이스정밀(주)', '정상'],
+      [HS, '정상'],
+    ],
+    [
+      ['PO-3101', 1_200_000_000, 'ACCEPTED', ['LN-27', 600_000_000, '실행']],
+      ['PO-3105', 300_000_000, 'ACCEPTED'],
+      ['PO-3110', 70_000_000, 'PENDING'],
+    ],
+  ),
+];
+
+/** 체인 조회: 기업을 검색하면 그 기업이 들어 있는 체인을 모두, 구분을 고르면 그 구분으로 들어 있는 체인만 */
+export function mockChains(q: ChainQuery = {}): Promise<ChainView> {
+  const company = q.company?.trim();
+  const list = company
+    ? chains.filter((c) =>
+        c.nodes.some((n) => n.name === company && (!q.tier || n.tier === q.tier)),
+      )
+    : chains;
+  const companies = [...new Set(chains.flatMap((c) => c.nodes.map((n) => n.name)))].sort((a, b) =>
+    a.localeCompare(b, 'ko'),
+  );
+  return mockDelay({ asOf: AS_OF, companies, chains: list });
 }

@@ -386,18 +386,22 @@ export interface CompanyReviewOverview {
   logs: { date: string; actor: string; text: string }[];
 }
 
-export interface ChainView {
-  asOf: string;
-  roots: { id: string; name: string }[];
-  rootId: string;
+/** 체인 안에서의 위치: 시작 기업(원청) → 1차 → 2차 → 3차 협력사 */
+export type ChainTier = '시작 기업' | '1차' | '2차' | '3차';
+
+/** 수락된 발주를 회사끼리 이어 만든 체인 하나 */
+export interface Chain {
+  id: string;
+  /** 시작 기업 */
+  rootName: string;
   /** 시작 기업의 발주 합계 */
   orderTotal: number;
   /** 체인 안 대출 잔액 합계 */
   loanBalance: number;
   /** 시작 기업부터 차례로 */
-  nodes: { name: string; tier: string; stage: AlertStage }[];
-  /** nodes[i] → nodes[i+1] 사이의 발주 */
-  links: { orderId: string; amount: number }[];
+  nodes: { name: string; tier: ChainTier; stage: AlertStage }[];
+  /** nodes[i] → nodes[i+1] 사이의 발주 번호 (금액은 연결고리에 보이지 않음) */
+  links: { orderId: string }[];
   rows: {
     orderId: string;
     from: string;
@@ -406,6 +410,20 @@ export interface ChainView {
     status: OrderStatus;
     loan?: { id: string; amount: number; statusLabel: string };
   }[];
+}
+
+export interface ChainQuery {
+  /** 검색한 기업. 없으면 모든 체인 */
+  company?: string;
+  /** 검색한 기업이 이 구분으로 들어 있는 체인만 */
+  tier?: Exclude<ChainTier, '시작 기업'>;
+}
+
+export interface ChainView {
+  asOf: string;
+  /** 검색할 수 있는 기업 이름 (중복 없음) */
+  companies: string[];
+  chains: Chain[];
 }
 
 // ---------- 은행 · 공통 ----------

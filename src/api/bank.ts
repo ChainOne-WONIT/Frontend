@@ -1,5 +1,6 @@
 import { request, USE_MOCK } from './client';
 import type {
+  ChainQuery,
   ChainView,
   CompanyReviewOverview,
   CompanyReviewPatch,
@@ -60,8 +61,12 @@ export function updateCompanyReview(
   return request('PATCH', `/api/bank/review/companies/${encodeURIComponent(id)}`, patch);
 }
 
-/** 발주 체인 조회 — GET /api/bank/chains?rootId= */
-export function getChain(rootId?: string): Promise<ChainView> {
-  if (USE_MOCK) return mock.mockChain(rootId);
-  return request('GET', `/api/bank/chains${rootId ? `?rootId=${encodeURIComponent(rootId)}` : ''}`);
+/** 발주 체인 조회 — GET /api/bank/chains?company=&tier= */
+export function getChains(q: ChainQuery = {}): Promise<ChainView> {
+  if (USE_MOCK) return mock.mockChains(q);
+  const params = new URLSearchParams();
+  if (q.company) params.set('company', q.company);
+  if (q.tier) params.set('tier', q.tier);
+  const qs = params.toString();
+  return request('GET', `/api/bank/chains${qs ? `?${qs}` : ''}`);
 }

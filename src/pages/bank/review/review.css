@@ -252,3 +252,165 @@
   color: var(--red);
   font-weight: 500;
 }
+
+/* 체인 조회: 기업 고르기 (구분 + 검색) */
+.rv-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rv-select--tier {
+  min-width: 96px;
+}
+.rv-search {
+  position: relative;
+  width: 260px;
+}
+.rv-search > svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sub);
+  pointer-events: none;
+}
+.rv-search .input {
+  height: 38px;
+  padding: 0 34px 0 36px;
+  font-size: 14px;
+}
+.rv-search__clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  display: flex;
+  padding: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--sub);
+  transform: translateY(-50%);
+}
+.rv-search__clear:hover {
+  background: var(--tint);
+}
+.rv-search__list {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  z-index: 10;
+  max-height: 280px;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+}
+.rv-search__list li {
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.rv-search__list li.is-active {
+  background: var(--tint);
+}
+.rv-search__list li[aria-selected='true'] {
+  color: var(--blue);
+  font-weight: 700;
+}
+.rv-search__empty {
+  color: var(--sub);
+  cursor: default;
+}
+.rv-chaincap {
+  margin: -4px 0 12px;
+}
+
+/* 체인 여러 개 */
+.rv-chains {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: opacity 0.15s;
+}
+.rv-chains.is-loading {
+  opacity: 0.5;
+}
+.rv-chain__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+.rv-chainmap.has-focus {
+  padding-top: 44px;
+}
+/* 검색한 기업이 있으면 나머지 기업은 흐리게 */
+.rv-chainmap.has-focus .rv-node:not(.is-focus) {
+  opacity: 0.55;
+}
+.rv-node {
+  position: relative;
+}
+.rv-node.is-focus {
+  min-width: 170px;
+  padding: 14px 18px;
+  background: #eaf4fd;
+  outline: 3px solid var(--blue);
+  outline-offset: 4px;
+  box-shadow: 0 10px 24px rgba(0, 103, 172, 0.25);
+  transform: scale(1.06);
+}
+.rv-node.is-focus b {
+  font-size: 15px;
+  color: var(--blue);
+}
+.rv-node__badge {
+  position: absolute;
+  left: 50%;
+  top: -34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: var(--white) !important;
+  font-size: 11px !important;
+  font-weight: 700;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.rv-node__badge::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  border: 5px solid transparent;
+  border-top-color: var(--blue);
+  border-bottom: 0;
+  transform: translateX(-50%);
+}
+.rv-legend__focus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rv-legend__focus::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: #eaf4fd;
+  outline: 2px solid var(--blue);
+}
+.table tbody tr.rv-row-focus td {
+  background: #f1f8fe;
+}
