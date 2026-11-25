@@ -2,6 +2,8 @@
 import { ApiError, mockDelay } from '../api/client';
 import type {
   BankLoginResponse,
+  BankMessages,
+  MyActivity,
   BankUser,
   Chain,
   ChainQuery,
@@ -23,8 +25,8 @@ import type {
   ViewReason,
 } from '../api/types';
 import { won } from '../lib/format';
-import { loanCounts } from './loan-data';
-import { addAudit, settings, signupApps } from './shared';
+import { computeAlerts, loanCounts } from './loan-data';
+import { addAudit, auditLogs, nowStamp, settings, signupApps } from './shared';
 
 const AS_OF = '2026-11-23';
 const REVIEWER = '김하늘(심사)';
@@ -380,9 +382,25 @@ export function bankSummary(): BankSummary {
 }
 
 export function mockReviewDashboard(): Promise<ReviewDashboard> {
+  const today = nowStamp().slice(0, 10);
+  const open = applications.filter((a) => a.status === 'REVIEW' || a.status === 'KODIT_REVIEW');
   return mockDelay({
     asOf: AS_OF,
     ...bankSummary(),
+    koditPending: applications.filter((a) => a.status === 'KODIT_REVIEW').length,
+    todayDone: auditLogs.filter(
+      (l) => l.actor === REVIEWER && l.kind === '처리' && l.at.startsWith(today),
+    ).length,
+    alerts: computeAlerts().map((al) => ({
+      id: al.id,
+      companyName: al.companyName,
+      stage: al.stage,
+      score: al.score,
+      signals: al.signals.map((x) => ({ label: x.label, points: x.points })),
+      lastAction: al.actions[0] && `${al.actions[0].type} · ${al.actions[0].at.slice(5)}`,
+      applicationId: open.find((a) => a.companyName === al.companyName)?.id,
+    })),
+    recentLogs: auditLogs.filter((l) => l.actor === REVIEWER).slice(0, 4),
     today: applications.filter((a) => a.status === 'REVIEW' || a.status === 'KODIT_REVIEW'),
   });
 }
@@ -507,8 +525,10 @@ function show(key: keyof CompanyReviewPatch, v: number | boolean) {
 export function mockUpdateCompanyReview(
   id: string,
   patch: CompanyReviewPatch,
+  reason?: string,
 ): Promise<CompanyReviewOverview> {
   const c = companies.find((x) => x.id === id);
+  const why = reason?.trim() ? ` (사유: ${reason.trim()})` : '';
   if (!c) return Promise.reject(new ApiError('기업을 찾을 수 없습니다.', 404, 'NOT_FOUND'));
   const changes: string[] = [];
   const oldDebt = c.debtRatio;
@@ -528,13 +548,13 @@ export function mockUpdateCompanyReview(
     addAudit({
       actor: REVIEWER,
       kind: '처리',
-      content: `기업 심사 정보 수정: ${changes.join(', ')}`,
+      content: `기업 심사 정보 수정: ${changes.join(', ')}${why}`,
       target: c.name,
     });
     editLogs.unshift({
       date: today(),
       actor: REVIEWER,
-      text: `${c.name} · ${changes.join(', ')}`,
+      text: `${c.name} · ${changes.join(', ')}${why}`,
     });
   }
   return mockDelay({ asOf: AS_OF, companies, logs: editLogs });
@@ -677,4 +697,25 @@ export function mockChains(q: ChainQuery = {}): Promise<ChainView> {
     a.localeCompare(b, 'ko'),
   );
   return mockDelay({ asOf: AS_OF, companies, chains: list });
+}
+
+/** 단말 오른쪽 알림메시지: 최근 처리·조회 기록에서 만듭니다. */
+export function mockBankMessages(): Promise<BankMessages> {
+  return mockDelay({
+    messages: auditLogs.slice(0, 6).map((l) => ({
+      at: l.at.slice(11) || l.at,
+      title: l.content.replace(/\s*\(.*\)$/, '').split(':')[0],
+      detail: `${l.target} · ${l.actor}`,
+    })),
+  });
+}
+
+/** 로그인한 뒤(since 'YYYY-MM-DD HH:mm' 이후) 이 직원이 한 처리·조회 */
+export function mockMyActivity(employeeNo: string, since: string): Promise<MyActivity> {
+  const acc = MOCK_BANK_ACCOUNTS.find((a) => a.employeeNo === employeeNo);
+  const short = acc ? `${acc.name}(${acc.roleLabel.replace(' 담당', '')})` : '';
+  return mockDelay({
+    since,
+    items: auditLogs.filter((l) => l.actor === short && l.at >= since),
+  });
 }

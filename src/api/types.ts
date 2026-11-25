@@ -298,6 +298,34 @@ export interface ReviewDashboard {
   };
   /** 오늘 볼 심사 */
   today: ReviewApplication[];
+  /** 신보 심사 중 건수 */
+  koditPending: number;
+  /** 오늘 이 담당자가 처리한 건수 */
+  todayDone: number;
+  /** 경보 기업 (심사 참고, 여신 경보와 연동) */
+  alerts: {
+    id: string;
+    companyName: string;
+    stage: AlertStage;
+    score: number;
+    signals: { label: string; points: number }[];
+    lastAction?: string;
+    /** 이 기업의 진행 중인 한도 신청 */
+    applicationId?: string;
+  }[];
+  /** 최근 처리·조회 내역 (이 담당자) */
+  recentLogs: AuditLog[];
+}
+
+/** 로그인한 뒤 내가 한 처리·조회 */
+export interface MyActivity {
+  since: string;
+  items: AuditLog[];
+}
+
+/** 단말 오른쪽 알림메시지 */
+export interface BankMessages {
+  messages: { at: string; title: string; detail: string }[];
 }
 
 export interface ReviewApplications {

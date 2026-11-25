@@ -1,0 +1,467 @@
+/* 심사 단말: 은행 영업점 단말 느낌의 촘촘한 화면 틀 */
+.tm {
+  --tm-top: #16324f;
+  --tm-top2: #21466d;
+  --tm-rail: #1d3b5c;
+  --tm-rail-txt: #b9cde3;
+  --tm-bg: #e9eef4;
+  --tm-line: #b8c6d6;
+  --tm-line2: #d5dee8;
+  --tm-head: #dde7f2;
+  --tm-navy: #13345a;
+  --tm-txt: #2a3b4d;
+  --tm-sub: #5d7189;
+  --tm-blue: #1f6fb8;
+  --tm-sel: #cfe2f6;
+
+  display: grid;
+  grid-template-columns: 50px 210px minmax(0, 1fr) 220px;
+  grid-template-rows: 40px minmax(0, 1fr) 24px;
+  grid-template-areas:
+    'top top top top'
+    'rail tree main msgs'
+    'status status status status';
+  height: 100vh;
+  background: var(--tm-bg);
+  color: var(--tm-txt);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.tm-spacer {
+  flex: 1;
+}
+
+/* 상단 툴바 */
+.tm-top {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px 0 10px;
+  background: var(--tm-top);
+  color: #fff;
+}
+.tm-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 14px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.tm-logo__mark {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: #fff;
+}
+.tm-logo__mark i {
+  position: absolute;
+  top: 7px;
+  width: 10px;
+  height: 8px;
+  border: 2px solid #0067ac;
+  border-radius: 4px;
+}
+.tm-logo__mark i:first-child {
+  left: 2px;
+}
+.tm-logo__mark i:last-child {
+  left: 9px;
+  border-color: #29a8ef;
+}
+.tm-tools {
+  display: flex;
+  gap: 4px;
+}
+.tm-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 44px;
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--tm-top2);
+  color: var(--tm-rail-txt);
+  font-size: 9px;
+}
+.tm-tool:hover:not(:disabled) {
+  background: #2d5a88;
+  color: #fff;
+}
+.tm-tool.is-on {
+  background: #3b6fa3;
+  color: #fff;
+}
+.tm-tool__icon {
+  width: 14px;
+  height: 11px;
+  border: 1.2px solid currentColor;
+  border-radius: 2px;
+}
+.tm-topmenu {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tm-topmenu > * {
+  padding: 5px 10px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+}
+.tm-topmenu button:hover {
+  text-decoration: underline;
+}
+.tm-badge {
+  display: inline-block;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: #e5484d;
+  font-size: 10px;
+  text-align: center;
+}
+
+/* 알림메시지를 숨겼을 때 */
+.tm.tm--nomsgs {
+  grid-template-columns: 50px 210px minmax(0, 1fr);
+  grid-template-areas:
+    'top top top'
+    'rail tree main'
+    'status status status';
+}
+
+/* 왼쪽 아이콘 줄 */
+.tm-rail {
+  grid-area: rail;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 0;
+  background: var(--tm-rail);
+}
+.tm-rail__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 44px;
+  padding: 7px 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--tm-rail-txt);
+  font-size: 9px;
+  text-decoration: none;
+}
+.tm-rail__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.tm-rail__item.active {
+  background: var(--tm-blue);
+  color: #fff;
+}
+.tm-rail__item.is-on {
+  color: #fff;
+}
+.tm-rail__sep {
+  width: 30px;
+  height: 1px;
+  margin: 6px 0;
+  background: rgba(185, 205, 227, 0.3);
+}
+
+/* 메뉴 트리 */
+.tm-tree {
+  grid-area: tree;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--tm-line);
+  background: #fff;
+}
+.tm-tree__tabs {
+  display: flex;
+}
+.tm-tree__tabs span {
+  flex: 1;
+  padding: 6px 0;
+  border: 1px solid var(--tm-line);
+  background: var(--tm-head);
+  color: var(--tm-sub);
+  font-size: 11px;
+  text-align: center;
+}
+.tm-tree__tabs span.is-on {
+  background: #fff;
+  color: var(--tm-navy);
+  font-weight: 700;
+}
+.tm-tree__group {
+  padding: 5px 0;
+  background: #c9d9ea;
+  color: var(--tm-navy);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+.tm-tree ul {
+  margin: 0;
+  padding: 6px 8px;
+  list-style: none;
+}
+.tm-tree li {
+  padding-top: 1px;
+  padding-bottom: 1px;
+  font-size: 11px;
+}
+.tm-tree__head {
+  margin-top: 4px;
+  color: var(--tm-navy);
+  font-weight: 700;
+}
+.tm-tree__sub {
+  padding: 3px 6px;
+  color: var(--tm-sub);
+}
+.tm-tree__sub.is-on {
+  color: var(--tm-blue);
+  font-weight: 700;
+}
+.tm-tree__link {
+  display: block;
+  padding: 3px 6px;
+  border: 1px solid transparent;
+  color: var(--tm-txt);
+  text-decoration: none;
+}
+.tm-tree__link:hover {
+  background: #eef4fb;
+}
+.tm-tree__link.active {
+  border-color: #8fb6df;
+  background: var(--tm-sel);
+  color: var(--tm-blue);
+  font-weight: 700;
+}
+
+/* 본문 */
+.tm-main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  min-height: 0;
+  padding: 6px 10px 8px;
+}
+.tm-crumb {
+  color: var(--tm-navy);
+  font-size: 11px;
+  font-weight: 500;
+}
+.tm-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--tm-line);
+}
+.tm-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--tm-line);
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: var(--tm-head);
+  font-size: 11px;
+}
+.tm-tab a {
+  color: var(--tm-sub);
+  text-decoration: none;
+}
+.tm-tab.is-on {
+  margin-bottom: -1px;
+  padding-bottom: 5px;
+  background: #fff;
+}
+.tm-tab.is-on a {
+  color: var(--tm-navy);
+  font-weight: 700;
+}
+.tm-tab button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tm-sub);
+}
+.tm-tab button:hover {
+  color: #c62828;
+}
+.tm-screen {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--tm-line);
+  background: #fff;
+}
+
+/* 알림메시지 */
+.tm-msgs {
+  grid-area: msgs;
+  min-height: 0;
+  overflow-y: auto;
+  border-left: 1px solid var(--tm-line);
+  background: #fff;
+}
+.tm-msgs__head {
+  padding: 6px 10px;
+  background: var(--tm-head);
+  color: var(--tm-navy);
+  font-size: 11px;
+  font-weight: 700;
+}
+.tm-msgs ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tm-msgs li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--tm-line2);
+}
+.tm-msgs em {
+  color: var(--tm-sub);
+  font-size: 10px;
+  font-style: normal;
+}
+.tm-msgs b {
+  color: var(--tm-navy);
+  font-size: 11px;
+}
+.tm-msgs small {
+  font-size: 10px;
+}
+
+/* 하단 상태 줄 */
+.tm-status {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--tm-line);
+  background: #d3dce7;
+  font-size: 10px;
+}
+.tm-status > span:not(.tm-spacer),
+.tm-status > b {
+  padding: 0 10px;
+  border-right: 1px solid var(--tm-line);
+}
+.tm-status > b {
+  color: var(--tm-navy);
+}
+.tm-status__ok {
+  color: #1b7a46;
+  font-weight: 700;
+}
+
+/* 화면이 좁으면 알림메시지를 접습니다 */
+@media (max-width: 1360px) {
+  .tm {
+    grid-template-columns: 50px 200px minmax(0, 1fr);
+    grid-template-areas:
+      'top top top'
+      'rail tree main'
+      'status status status';
+  }
+  .tm-msgs {
+    display: none;
+  }
+}
+
+@media print {
+  .tm {
+    display: block;
+    height: auto;
+  }
+  .tm-top,
+  .tm-rail,
+  .tm-tree,
+  .tm-msgs,
+  .tm-status,
+  .tm-tabs,
+  .tm-crumb {
+    display: none;
+  }
+}
+
+/* 오른쪽 패널 탭: 알림메시지 | 내 처리 기록 */
+.tm-msgs__tabs {
+  display: flex;
+}
+.tm-msgs__tabs button {
+  flex: 1;
+  padding: 6px 0;
+  border: 1px solid var(--tm-line);
+  border-top: 0;
+  background: var(--tm-head);
+  color: var(--tm-sub);
+  font-size: 11px;
+}
+.tm-msgs__tabs button.is-on {
+  border-bottom-color: #fff;
+  background: #fff;
+  color: var(--tm-navy);
+  font-weight: 700;
+}
+.tm-msgs__since {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--tm-line2);
+  background: #f6f9fc;
+  color: var(--tm-sub);
+  font-size: 10px;
+}
+.tm-msgs__empty {
+  padding: 16px 10px;
+  color: var(--tm-sub);
+  font-size: 11px;
+  text-align: center;
+}
+.tm-kind {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+}
+.tm-kind--view {
+  background: #e3eefa;
+  color: #1f6fb8;
+}
+.tm-kind--act {
+  background: #e3f5ea;
+  color: #1b7a46;
+}
+.tm-topmenu button.is-on {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.tm-badge--blue {
+  background: #3b82c4;
+}

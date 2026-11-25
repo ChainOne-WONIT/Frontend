@@ -1,5 +1,7 @@
 import { request, USE_MOCK } from './client';
 import type {
+  BankMessages,
+  MyActivity,
   ChainQuery,
   ChainView,
   CompanyReviewOverview,
@@ -52,13 +54,17 @@ export function getCompanyReviews(): Promise<CompanyReviewOverview> {
   return request('GET', '/api/bank/review/companies');
 }
 
-/** 기업 심사 정보 수정 — PATCH /api/bank/review/companies/{id} */
+/** 기업 심사 정보 수정 — PATCH /api/bank/review/companies/{id} { ...값, reason? } */
 export function updateCompanyReview(
   id: string,
   patch: CompanyReviewPatch,
+  reason?: string,
 ): Promise<CompanyReviewOverview> {
-  if (USE_MOCK) return mock.mockUpdateCompanyReview(id, patch);
-  return request('PATCH', `/api/bank/review/companies/${encodeURIComponent(id)}`, patch);
+  if (USE_MOCK) return mock.mockUpdateCompanyReview(id, patch, reason);
+  return request('PATCH', `/api/bank/review/companies/${encodeURIComponent(id)}`, {
+    ...patch,
+    reason,
+  });
 }
 
 /** 발주 체인 조회 — GET /api/bank/chains?company=&tier= */
@@ -69,4 +75,16 @@ export function getChains(q: ChainQuery = {}): Promise<ChainView> {
   if (q.tier) params.set('tier', q.tier);
   const qs = params.toString();
   return request('GET', `/api/bank/chains${qs ? `?${qs}` : ''}`);
+}
+
+/** 단말 알림메시지 — GET /api/bank/messages */
+export function getBankMessages(): Promise<BankMessages> {
+  if (USE_MOCK) return mock.mockBankMessages();
+  return request('GET', '/api/bank/messages');
+}
+
+/** 로그인한 뒤 내 처리·조회 기록 — GET /api/bank/me/activity?since= */
+export function getMyActivity(employeeNo: string, since: string): Promise<MyActivity> {
+  if (USE_MOCK) return mock.mockMyActivity(employeeNo, since);
+  return request('GET', `/api/bank/me/activity?since=${encodeURIComponent(since)}`);
 }

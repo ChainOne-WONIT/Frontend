@@ -1,342 +1,478 @@
-import { useState, type ReactNode } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router';
 import { decideReview, getReviewDetail, submitKoditResult } from '../../../api/bank';
 import type { ReviewDetail, ViewReason } from '../../../api/types';
-import { Icon } from '../../../components/Icon';
-import { ReasonModal } from '../../../components/Modal';
-import { Card, ErrorBox, KeyValue, Loading, Note, Pill, StatusPill } from '../../../components/ui';
-import { PageHead } from '../../../layouts/CorpLayout';
-import { VIEW_REASONS, won } from '../../../lib/format';
+import {
+  TError,
+  TFKeys,
+  TKV,
+  TLoading,
+  TReasonGate,
+  TSection,
+  TTag,
+  TTitle,
+  TWarn,
+  type TTone,
+} from '../../../components/terminal';
+import { flowLabel, STATUS_TONE, VIEW_REASONS, won } from '../../../lib/format';
 import { useAsync } from '../../../lib/useAsync';
-import { GRADE_TONE, REVIEW_STATUS_LABEL, REVIEW_STATUS_TONE } from './review-format';
-import './review.css';
+import { GRADE_TONE, REVIEW_STATUS_LABEL } from './review-format';
 
 const LIST = '/bank/review/applications';
+const RS_TONE = {
+  REVIEW: 'warn',
+  KODIT_REVIEW: 'violet',
+  APPROVED: 'ok',
+  EXCLUDED: 'bad',
+} as const;
+const ORDER_TONE = (t: string): TTone =>
+  t === 'warn'
+    ? 'warn'
+    : t === 'ok'
+      ? 'ok'
+      : t === 'violet'
+        ? 'violet'
+        : t === 'bad'
+          ? 'bad'
+          : 'blue';
+const CHECK_SOURCE: Record<string, string> = {
+  '현재 연체': '신용정보원',
+  '세금 체납': '국세청',
+  '휴·폐업': '국세청',
+  '부도·회생 이력': '법원 공고',
+  '수락된 발주': '발주 상태',
+};
 
-/**
- * 심사 03 · 심사 상세.
- * 목록에서 조회 사유를 고르고 들어오면 바로 열립니다. 주소로 바로 들어오면 여기서 사유를 먼저 고릅니다.
- */
+/** [R0220] 심사 상세 (단말형). 조회 사유를 고른 뒤에만 열립니다. */
 export function ReviewDetailPage() {
   const { id = '' } = useParams();
-  const navigate = useNavigate();
-  const state = useLocation().state as { reason?: ViewReason } | null;
-  const passed = state?.reason && VIEW_REASONS.includes(state.reason) ? state.reason : undefined;
-  const [reason, setReason] = useState<ViewReason | undefined>(passed);
-
-  if (!reason) {
-    return <ReasonModal<ViewReason> onClose={() => navigate(LIST)} onOpen={setReason} />;
-  }
-  return <DetailView id={id} reason={reason} />;
+  return (
+    <TReasonGate reasons={VIEW_REASONS} back={LIST}>
+      {(reason) => <DetailView id={id} reason={reason} />}
+    </TReasonGate>
+  );
 }
 
 function DetailView({ id, reason }: { id: string; reason: ViewReason }) {
+  const navigate = useNavigate();
   const { data, error, loading, reload, setData } = useAsync(
     () => getReviewDetail(id, reason),
     [id, reason],
   );
-
-  if (loading) return <Loading />;
-  if (error || !data)
-    return <ErrorBox error={error ?? new Error('데이터가 없습니다.')} onRetry={reload} />;
+  // 판정
+  const [why, setWhy] = useState('');
+  // 신보 결과
+  const [amount, setAmount] = useState('');
+  const [expireAt, setExpireAt] = useState('');
+  const [koditReason, setKoditReason] = useState('');
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const d = data;
-  const maxDelta = Math.max(1, ...d.grade.factors.map((f) => Math.abs(f.delta)));
+  const run = async (fn: () => Promise<ReviewDetail>, done: string) => {
+    setBusy(true);
+    setMsg(null);
+    try {
+      setData(await fn());
+      setMsg({ ok: true, text: done });
+    } catch (e) {
+      setMsg({ ok: false, text: (e as Error).message });
+    } finally {
+      setBusy(false);
+    }
+  };
+  const decide = (result: 'PASS' | 'EXCLUDE') => {
+    if (!d) return;
+    if (result !== d.systemDecision && !why.trim()) {
+      setMsg({ ok: false, text: '시스템 판정과 다르게 확정하려면 사유를 입력해 주세요.' });
+      return;
+    }
+    run(
+      () => decideReview(d.id, { result, reason: why.trim() || undefined }),
+      `${result === 'PASS' ? '통과' : '제외'}로 확정했습니다.`,
+    );
+  };
+  const kodit = (approved: boolean) => {
+    if (!d) return;
+    const n = Math.round(Number(amount) * 1e8);
+    if (approved && !(n > 0)) {
+      setMsg({ ok: false, text: '승인 한도(억원)를 입력해 주세요.' });
+      return;
+    }
+    run(
+      () =>
+        submitKoditResult(
+          d.id,
+          approved
+            ? { approved, amount: n, expireAt: expireAt || undefined }
+            : { approved, reason: koditReason.trim() || undefined },
+        ),
+      approved ? '신보 승인 결과를 저장했습니다.' : '신보 거절로 저장했습니다.',
+    );
+  };
+
+  const isReview = d?.status === 'REVIEW';
+  const isKodit = d?.status === 'KODIT_REVIEW';
 
   return (
     <>
-      <PageHead
-        title={`${d.companyName} · ${d.counterpartyName} 거래용 한도`}
-        sub={`신청 ${d.appliedAt}  ·  대금 수령 계좌 ${d.account}  ·  약정 ${d.consentCount}개 항목 동의 ${d.consentAt}`}
+      <TTitle
+        code="R0220"
+        num="2200"
+        title={d ? `심사 상세 · ${d.companyName}` : '심사 상세'}
         right={
           <>
-            <Pill tone={REVIEW_STATUS_TONE[d.status]}>{REVIEW_STATUS_LABEL[d.status]}</Pill>
-            <Link to={LIST} className="btn btn--outline btn--sm">
-              목록으로
-            </Link>
+            {d && <TTag tone={RS_TONE[d.status]}>{REVIEW_STATUS_LABEL[d.status]}</TTag>}
+            <button type="button" className="tb" onClick={() => navigate(LIST)}>
+              목록[F3]
+            </button>
           </>
         }
       />
-      <p className="small muted rv-reason">
-        <Icon name="info" size={14} /> 조회 사유: {reason} · 이 조회는 기록에 남습니다.
-      </p>
+      {loading && !d ? (
+        <TLoading />
+      ) : error || !d ? (
+        <TError error={error ?? new Error('데이터가 없습니다.')} onRetry={reload} />
+      ) : (
+        <>
+          <TSection title="신청 정보" right={`조회 사유: ${reason} · 조회 기록 저장됨`} />
+          <TKV
+            labelWidth={110}
+            rows={[
+              [
+                { label: '신청번호', value: d.id, strong: true },
+                { label: '신청기업', value: d.companyName, strong: true },
+                { label: '거래상대 (발주처)', value: d.counterpartyName },
+              ],
+              [
+                { label: '신청일', value: d.appliedAt },
+                { label: '대금 수령 계좌', value: d.account },
+                { label: '약정 동의', value: `${d.consentCount}개 항목 · ${d.consentAt}` },
+              ],
+            ]}
+          />
 
-      <div className="grid-2">
-        <Card title="① 자격 확인 (규칙)">
-          <ul className="list">
-            {d.checks.map((c) => (
-              <li key={c.label} className="list__item rv-check">
-                <span className="list__main">{c.label}</span>
-                <Pill tone={c.ok ? 'ok' : 'bad'}>{c.ok ? '문제 없음' : '문제 있음'}</Pill>
-              </li>
-            ))}
-          </ul>
-        </Card>
-
-        <Card title="② 등급 (모델)">
-          <div className="rv-grade">
-            <b className={`rv-grade__pd rv-grade__pd--${GRADE_TONE[d.grade.label]}`}>{d.pd}%</b>
-            <Pill tone={GRADE_TONE[d.grade.label]}>{d.grade.label}</Pill>
-            <span className="small muted">
-              예측 부실확률 · 안정 {d.grade.stableBelow}% 미만 / 제외 {d.grade.excludeFrom}% 이상
-            </span>
-          </div>
-          <h3 className="rv-sub">판정에 크게 영향을 준 항목</h3>
-          <ul className="rv-factors">
-            {d.grade.factors.map((f) => (
-              <li key={f.text}>
-                <div className="row-between">
-                  <span>{f.text}</span>
-                  <span className={f.delta > 0 ? 'rv-up' : 'rv-down'}>
-                    {f.delta > 0 ? `위험을 높임 +${f.delta}` : `위험을 낮춤 ${f.delta}`}
-                  </span>
-                </div>
-                <div className="bar">
-                  <i
-                    className={f.delta > 0 ? 'rv-bar-up' : 'rv-bar-down'}
-                    style={{ width: `${(Math.abs(f.delta) / maxDelta) * 100}%` }}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      </div>
-
-      <Card title="근거 발주와 체인">
-        <p className="rv-chain">발주 연결: {d.chainPath.join(' → ')}</p>
-        <div className="list__item rv-order">
-          <div className="list__main">
-            <div className="list__title">
-              {d.order.id} · {d.order.item} · {won(d.order.amount)}
+          <div className="tt-halves">
+            <div>
+              <TSection title="① 자격 확인 (규칙)" right={`${d.checks.length}개 항목`} />
+              <table className="tt-table">
+                <thead>
+                  <tr>
+                    <th>항목</th>
+                    <th>결과</th>
+                    <th>근거</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {d.checks.map((c) => (
+                    <tr key={c.label} className={c.ok ? undefined : 'is-hl'}>
+                      <td>{c.label}</td>
+                      <td className="c">
+                        <TTag tone={c.ok ? 'ok' : 'bad'}>{c.ok ? '문제 없음' : '문제 있음'}</TTag>
+                      </td>
+                      <td>{CHECK_SOURCE[c.label] ?? '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="list__sub">
-              납기 {d.order.dueDate} · 수량 {d.order.quantity.toLocaleString()}
-              {d.order.unit} · {d.order.place}
+            <div>
+              <TSection
+                title="② 등급 (모델)"
+                right={`안정 ${d.grade.stableBelow}% 미만 / 제외 ${d.grade.excludeFrom}% 이상`}
+              />
+              <TKV
+                labelWidth={100}
+                rows={[
+                  [
+                    {
+                      label: '예측 부실확률',
+                      value: (
+                        <>
+                          <b
+                            className={`tt-c--${GRADE_TONE[d.grade.label]}`}
+                            style={{ fontSize: 14 }}
+                          >
+                            {d.pd}%
+                          </b>
+                          <TTag tone={GRADE_TONE[d.grade.label] as TTone}>{d.grade.label}</TTag>
+                        </>
+                      ),
+                    },
+                    {
+                      label: '시스템 판정',
+                      value: d.systemDecision === 'PASS' ? '통과' : '제외',
+                      strong: true,
+                      tone: d.systemDecision === 'PASS' ? 'ok' : 'bad',
+                    },
+                  ],
+                ]}
+              />
+              <table className="tt-table">
+                <thead>
+                  <tr>
+                    <th>판정에 크게 영향을 준 항목</th>
+                    <th>방향</th>
+                    <th>기여</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {d.grade.factors.map((f) => (
+                    <tr key={f.text}>
+                      <td>{f.text}</td>
+                      <td className="c">
+                        <TTag tone={f.delta > 0 ? 'bad' : 'ok'}>
+                          {f.delta > 0 ? '위험 ↑' : '위험 ↓'}
+                        </TTag>
+                      </td>
+                      <td className="r">{f.delta > 0 ? `+${f.delta}` : f.delta}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-          <StatusPill status={d.order.status} />
-        </div>
-      </Card>
 
-      {d.status === 'REVIEW' && <DecisionCard detail={d} onDone={setData} />}
-      {d.status === 'KODIT_REVIEW' && <KoditCard detail={d} onDone={setData} />}
-      {(d.status === 'APPROVED' || d.status === 'EXCLUDED') && <ResultCard detail={d} />}
-    </>
-  );
-}
-
-/** 판정: 시스템 판정과 다르게 확정하려면 사유가 꼭 있어야 합니다. */
-function DecisionCard({
-  detail,
-  onDone,
-}: {
-  detail: ReviewDetail;
-  onDone: (d: ReviewDetail) => void;
-}) {
-  const [reason, setReason] = useState('');
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const sys = detail.systemDecision;
-
-  const decide = async (result: 'PASS' | 'EXCLUDE') => {
-    if (result !== sys && !reason.trim()) {
-      setError('시스템 판정과 다르게 확정하려면 사유를 입력해 주세요.');
-      return;
-    }
-    setBusy(true);
-    setError('');
-    try {
-      onDone(await decideReview(detail.id, { result, reason: reason.trim() || undefined }));
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Card
-      title="판정"
-      right={
-        <span className="row-gap small muted">
-          시스템 판정
-          <Pill tone={sys === 'PASS' ? 'ok' : 'bad'}>{sys === 'PASS' ? '통과' : '제외'}</Pill>
-        </span>
-      }
-    >
-      <label className="field">
-        <span className="field__label">시스템 판정과 다르게 확정할 때 사유 (필수)</span>
-        <input
-          className={`input${error ? ' input--error' : ''}`}
-          placeholder="예: 연체가 해소되어 최근 3개월 정상 상환 중"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-        />
-      </label>
-      {error && (
-        <p className="field__error rv-gap" role="alert">
-          {error}
-        </p>
-      )}
-      <div className="detail-action rv-gap">
-        <button
-          type="button"
-          className="btn btn--primary"
-          disabled={busy}
-          onClick={() => decide('PASS')}
-        >
-          통과로 확정
-        </button>
-        <button
-          type="button"
-          className="btn btn--danger"
-          disabled={busy}
-          onClick={() => decide('EXCLUDE')}
-        >
-          제외로 확정
-        </button>
-      </div>
-      <div className="rv-gap">
-        <Note tone="warn">
-          자동 평가만으로 거절을 확정하지 않습니다. 시스템 판정과 다르게 확정하려면 사유가
-          필요합니다.
-        </Note>
-      </div>
-    </Card>
-  );
-}
-
-/** 심사 통과 뒤 신용보증기금 승인 결과를 입력합니다. */
-function KoditCard({
-  detail,
-  onDone,
-}: {
-  detail: ReviewDetail;
-  onDone: (d: ReviewDetail) => void;
-}) {
-  const [amountEok, setAmountEok] = useState('');
-  const [expireAt, setExpireAt] = useState('');
-  const [reason, setReason] = useState('');
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  const submit = async (approved: boolean) => {
-    const amount = Math.round(Number(amountEok) * 1e8);
-    if (approved && !(amount > 0)) {
-      setError('승인 한도를 입력해 주세요.');
-      return;
-    }
-    setBusy(true);
-    setError('');
-    try {
-      onDone(
-        await submitKoditResult(
-          detail.id,
-          approved
-            ? { approved, amount, expireAt: expireAt || undefined }
-            : { approved, reason: reason.trim() || undefined },
-        ),
-      );
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Card title="신보 승인 결과 입력" right={<Pill tone="violet">신보 심사 중</Pill>}>
-      {detail.decision && (
-        <p className="small muted" style={{ marginBottom: 14 }}>
-          은행 심사: {detail.decision.result === 'PASS' ? '통과' : '제외'} 확정 ·{' '}
-          {detail.decision.by} · {detail.decision.at}
-        </p>
-      )}
-      <div className="form-grid rv-kodit">
-        <label className="field">
-          <span className="field__label">승인 한도 (억 원)</span>
-          <input
-            className="input"
-            type="number"
-            min="0"
-            step="0.1"
-            inputMode="decimal"
-            placeholder="예: 3"
-            value={amountEok}
-            onChange={(e) => setAmountEok(e.target.value)}
+          <TSection title="근거 발주와 체인" />
+          <TKV
+            labelWidth={100}
+            rows={[
+              [
+                { label: '발주번호', value: d.order.id, strong: true },
+                { label: '품목', value: d.order.item },
+                { label: '발주금액', value: won(d.order.amount), strong: true },
+                {
+                  label: '발주 상태',
+                  value: (
+                    <TTag tone={ORDER_TONE(STATUS_TONE[d.order.status])}>
+                      {flowLabel(d.order.status)}
+                    </TTag>
+                  ),
+                },
+              ],
+              [
+                { label: '납기', value: d.order.dueDate },
+                { label: '수량', value: `${d.order.quantity.toLocaleString()}${d.order.unit}` },
+                { label: '납품 장소', value: d.order.place },
+                { label: '체인 위치', value: `${d.chainPath.length - 1}차 협력사` },
+              ],
+              [
+                {
+                  label: '발주 연결',
+                  value: d.chainPath.map((n, i) => (
+                    <span key={n}>
+                      {i > 0 && '  ▶  '}
+                      {i === d.chainPath.length - 1 ? <b className="tt-c--blue">{n}</b> : n}
+                    </span>
+                  )),
+                },
+              ],
+            ]}
           />
-        </label>
-        <label className="field">
-          <span className="field__label">만료일 (비우면 1년 뒤)</span>
-          <input
-            className="input"
-            type="date"
-            value={expireAt}
-            onChange={(e) => setExpireAt(e.target.value)}
-          />
-        </label>
-        <label className="field form-grid__full">
-          <span className="field__label">신보가 거절한 경우 사유</span>
-          <input
-            className="input"
-            placeholder="예: 보증 한도 초과"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
-        </label>
-      </div>
-      {error && (
-        <p className="field__error rv-gap" role="alert">
-          {error}
-        </p>
-      )}
-      <div className="detail-action rv-gap">
-        <button
-          type="button"
-          className="btn btn--primary"
-          disabled={busy}
-          onClick={() => submit(true)}
-        >
-          승인으로 저장
-        </button>
-        <button
-          type="button"
-          className="btn btn--danger"
-          disabled={busy}
-          onClick={() => submit(false)}
-        >
-          신보 거절로 저장
-        </button>
-      </div>
-    </Card>
-  );
-}
 
-function ResultCard({ detail: d }: { detail: ReviewDetail }) {
-  return (
-    <Card
-      title="심사 결과"
-      right={<Pill tone={REVIEW_STATUS_TONE[d.status]}>{REVIEW_STATUS_LABEL[d.status]}</Pill>}
-    >
-      <KeyValue
-        rows={[
-          ...(d.status === 'APPROVED'
-            ? ([
-                ['승인 한도', <b key="a">{won(d.amount)}</b>],
-                ['만료일', d.expireAt ?? '-'],
-              ] as [string, ReactNode][])
-            : ([['제외 사유', d.excludeReason ?? '-']] as [string, ReactNode][])),
-          ...(d.decision
-            ? ([
+          <TSection title="판정" right="시스템 판정과 다르게 확정하면 사유 필수" />
+          {isReview ? (
+            <>
+              <TKV
+                labelWidth={120}
+                rows={[
+                  [
+                    {
+                      label: '시스템 판정',
+                      value: (
+                        <>
+                          <TTag tone={d.systemDecision === 'PASS' ? 'ok' : 'bad'}>
+                            {d.systemDecision === 'PASS' ? '통과' : '제외'}
+                          </TTag>
+                          <span className="tt-muted">
+                            {d.checks
+                              .filter((c) => !c.ok)
+                              .map((c) => c.label)
+                              .join(' · ') || '자격 확인 문제 없음'}{' '}
+                            · 예측 부실확률 {d.pd}%
+                          </span>
+                        </>
+                      ),
+                    },
+                    { label: '담당자', value: '김하늘 (심사역)' },
+                  ],
+                  [
+                    {
+                      label: '다르게 확정할 사유',
+                      req: true,
+                      value: (
+                        <input
+                          className="tf tf--req"
+                          aria-label="시스템 판정과 다르게 확정할 사유"
+                          placeholder="예: 연체가 해소되어 최근 3개월 정상 상환 중"
+                          value={why}
+                          onChange={(e) => setWhy(e.target.value)}
+                        />
+                      ),
+                    },
+                  ],
+                ]}
+              />
+              <TWarn>
+                자동 평가만으로 거절을 확정하지 않습니다. 시스템 판정과 다르게 확정하려면 사유가
+                필요합니다.
+              </TWarn>
+            </>
+          ) : (
+            <TKV
+              labelWidth={120}
+              rows={[
                 [
-                  '은행 심사',
-                  `${d.decision.result === 'PASS' ? '통과' : '제외'} 확정 · ${d.decision.by} · ${d.decision.at}${d.decision.reason ? ` · 사유: ${d.decision.reason}` : ''}`,
+                  {
+                    label: '확정 결과',
+                    value: d.decision ? (d.decision.result === 'PASS' ? '통과' : '제외') : '-',
+                    strong: true,
+                    tone: d.decision?.result === 'PASS' ? 'ok' : 'bad',
+                  },
+                  {
+                    label: '처리자 · 일자',
+                    value: d.decision ? `${d.decision.by} · ${d.decision.at}` : '-',
+                  },
+                  { label: '사유', value: d.decision?.reason ?? '—' },
                 ],
-              ] as [string, ReactNode][])
-            : []),
-        ]}
-      />
-    </Card>
+              ]}
+            />
+          )}
+
+          <TSection
+            title="신보 승인 결과 입력"
+            right={
+              isKodit
+                ? '신보 회신 내용을 입력합니다'
+                : isReview
+                  ? '판정을 통과로 확정한 뒤에 입력할 수 있습니다'
+                  : '입력 완료'
+            }
+          />
+          {d.status === 'APPROVED' || d.status === 'EXCLUDED' ? (
+            <TKV
+              labelWidth={110}
+              rows={[
+                [
+                  {
+                    label: '결과',
+                    value: REVIEW_STATUS_LABEL[d.status],
+                    strong: true,
+                    tone: d.status === 'APPROVED' ? 'ok' : 'bad',
+                  },
+                  { label: '승인 한도', value: d.amount ? won(d.amount) : '—' },
+                  { label: '만료일', value: d.expireAt ?? '—' },
+                  { label: '제외 사유', value: d.excludeReason ?? '—' },
+                ],
+              ]}
+            />
+          ) : (
+            <TKV
+              labelWidth={110}
+              rows={[
+                [
+                  {
+                    label: '승인 한도 (억원)',
+                    req: isKodit,
+                    value: (
+                      <input
+                        className={`tf${isKodit ? ' tf--req' : ''}`}
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        aria-label="승인 한도 (억원)"
+                        disabled={!isKodit}
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                      />
+                    ),
+                  },
+                  {
+                    label: '만료일',
+                    value: (
+                      <input
+                        className="tf"
+                        type="date"
+                        aria-label="만료일"
+                        disabled={!isKodit}
+                        value={expireAt}
+                        onChange={(e) => setExpireAt(e.target.value)}
+                      />
+                    ),
+                  },
+                  {
+                    label: '신보 거절 사유',
+                    value: (
+                      <input
+                        className="tf"
+                        aria-label="신보 거절 사유"
+                        disabled={!isKodit}
+                        value={koditReason}
+                        onChange={(e) => setKoditReason(e.target.value)}
+                      />
+                    ),
+                  },
+                ],
+              ]}
+            />
+          )}
+
+          {msg && (
+            <p
+              className={msg.ok ? 'tt-note tt-c--ok' : 'tt-warn'}
+              role={msg.ok ? 'status' : 'alert'}
+            >
+              {msg.ok ? '● ' : '✕ '}
+              {msg.text}
+            </p>
+          )}
+
+          <TFKeys
+            keys={[
+              { label: '목록', fkey: 'F3', onClick: () => navigate(LIST) },
+              {
+                label: '기업 심사 정보',
+                fkey: 'F5',
+                onClick: () => navigate('/bank/review/companies'),
+              },
+              { label: '체인 조회', fkey: 'F6', onClick: () => navigate('/bank/review/chain') },
+              ...(isKodit
+                ? [
+                    {
+                      label: '신보 거절 저장',
+                      fkey: 'F8' as const,
+                      kind: 'danger' as const,
+                      disabled: busy,
+                      onClick: () => kodit(false),
+                    },
+                    {
+                      label: '신보 승인 저장',
+                      fkey: 'F7' as const,
+                      kind: 'primary' as const,
+                      disabled: busy,
+                      onClick: () => kodit(true),
+                    },
+                  ]
+                : [
+                    {
+                      label: '제외로 확정',
+                      fkey: 'F8' as const,
+                      kind: 'danger' as const,
+                      disabled: busy || !isReview,
+                      onClick: () => decide('EXCLUDE'),
+                    },
+                    {
+                      label: '통과로 확정',
+                      fkey: 'F7' as const,
+                      kind: 'primary' as const,
+                      disabled: busy || !isReview,
+                      onClick: () => decide('PASS'),
+                    },
+                  ]),
+            ]}
+          />
+        </>
+      )}
+    </>
   );
 }

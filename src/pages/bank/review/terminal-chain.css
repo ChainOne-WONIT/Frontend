@@ -1,0 +1,114 @@
+/* [R0400] 발주 체인 조회 (단말형) */
+.tc-grid {
+  border: 1px solid #b8c6d6;
+  transition: opacity 0.15s;
+}
+.tc-grid.is-loading {
+  opacity: 0.5;
+}
+.tc-row {
+  display: flex;
+  border-bottom: 1px solid #d5dee8;
+}
+.tc-row:last-child {
+  border-bottom: 0;
+}
+.tc-row:nth-child(even) {
+  background: #f6f9fc;
+}
+.tc-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: none;
+  width: 150px;
+  padding: 10px 8px;
+  border-right: 1px solid #d5dee8;
+  background: #dde7f2;
+  font-size: 11px;
+}
+.tc-label b {
+  color: #1f6fb8;
+}
+.tc-label span {
+  color: #13345a;
+  font-weight: 500;
+}
+.tc-label small {
+  color: #5d7189;
+  font-size: 10px;
+}
+.tc-flow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  padding: 10px 14px;
+}
+.tc-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 4px;
+  font-size: 10px;
+}
+.tc-link b {
+  color: #13345a;
+}
+.tc-link span {
+  color: #8aa3bd;
+  font-size: 11px;
+}
+.tc-node {
+  display: flex;
+  flex-direction: column;
+  min-width: 118px;
+  padding: 5px 8px;
+  border: 1.5px solid;
+  border-left-width: 5px;
+  background: #fff;
+  font-size: 11px;
+}
+.tc-node b {
+  color: #13345a;
+}
+.tc-node small {
+  font-size: 10px;
+  font-weight: 500;
+}
+.tc-node--ok {
+  border-color: #2e9e5b;
+}
+.tc-node--ok small {
+  color: #2e9e5b;
+}
+.tc-node--watch {
+  border-color: #e08a00;
+}
+.tc-node--watch small {
+  color: #e08a00;
+}
+.tc-node--caution {
+  border-color: #d93025;
+}
+.tc-node--caution small {
+  color: #d93025;
+}
+.tc-node--alert {
+  border-color: #8e1b14;
+  background: #fff3f2;
+}
+.tc-node--alert small {
+  color: #8e1b14;
+}
+/* 검색한 기업 */
+.tc-node.is-focus {
+  min-width: 138px;
+  border: 2.5px solid #1f6fb8;
+  background: #fff4c2;
+  box-shadow: 0 0 0 2px rgba(31, 111, 184, 0.18);
+}
+.tc-node.is-focus b,
+.tc-node.is-focus small {
+  color: #1f6fb8;
+}

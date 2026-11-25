@@ -1,0 +1,390 @@
+/* 심사 단말 화면 조각 */
+.tm-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tt-spacer {
+  flex: 1;
+}
+.tt-muted {
+  color: #5d7189;
+  font-size: 10px;
+}
+
+/* 화면 제목 */
+.tt-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tt-title__star {
+  color: #f0a500;
+  font-weight: 700;
+}
+.tt-title__code {
+  color: #1f6fb8;
+  font-size: 13px;
+}
+.tt-title h1 {
+  color: #13345a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 버튼 */
+.tb {
+  padding: 3px 10px;
+  border: 1px solid #b8c6d6;
+  border-radius: 3px;
+  background: #fff;
+  color: #13345a;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tb:hover:not(:disabled) {
+  background: #eef4fb;
+}
+.tb:disabled {
+  border-color: #d5dee8;
+  background: #e6eaef;
+  color: #9aa8b8;
+  cursor: not-allowed;
+}
+.tb--primary {
+  border-color: #1f6fb8;
+  background: #1f6fb8;
+  color: #fff;
+  font-weight: 700;
+}
+.tb--primary:hover:not(:disabled) {
+  background: #185a96;
+}
+.tb--danger {
+  border-color: #e3a3a3;
+  color: #c62828;
+  font-weight: 700;
+}
+.tb--danger:hover:not(:disabled) {
+  background: #fdf1f1;
+}
+.tb--sm {
+  padding: 1px 8px;
+  font-size: 10px;
+}
+
+/* 입력 칸 */
+.tf {
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid #b8c6d6;
+  border-radius: 0;
+  background: #fff;
+  color: #2a3b4d;
+  font-size: 11px;
+  outline: none;
+}
+.tf:focus {
+  border-color: #1f6fb8;
+  box-shadow: 0 0 0 2px rgba(31, 111, 184, 0.2);
+}
+.tf--req {
+  background: #fff6d5;
+}
+.tf:disabled {
+  background: #eef1f5;
+}
+input.tf::placeholder {
+  color: #8a9db0;
+}
+
+/* 조회 조건 */
+.tt-cond {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 8px 12px;
+  border: 1px solid #a9c4e2;
+  background: #e3eefa;
+}
+.tt-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tt-field > span {
+  color: #13345a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tt-warn {
+  color: #c62828;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* 구역 제목 */
+.tt-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+}
+.tt-section i {
+  width: 7px;
+  height: 7px;
+  background: #1f6fb8;
+}
+.tt-section h2 {
+  color: #13345a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* 라벨 | 값 격자 */
+.tt-kv {
+  border: 1px solid #b8c6d6;
+}
+.tt-kv__row {
+  display: flex;
+}
+.tt-kv__row + .tt-kv__row {
+  border-top: 1px solid #d5dee8;
+}
+.tt-kv__pair {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+.tt-kv__pair + .tt-kv__pair {
+  border-left: 1px solid #d5dee8;
+}
+.tt-kv__label {
+  display: flex;
+  align-items: center;
+  flex: none;
+  padding: 5px 8px;
+  border-right: 1px solid #d5dee8;
+  background: #dde7f2;
+  color: #13345a;
+  font-size: 11px;
+  font-weight: 500;
+}
+.tt-kv__value {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+.tt-kv__value.is-req {
+  background: #fff6d5;
+}
+.tt-kv__value.is-right {
+  justify-content: flex-end;
+}
+.tt-kv__value.is-strong {
+  font-size: 12px;
+  font-weight: 700;
+}
+.tt-kv__value .tf {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 색 */
+.tt-c--ok {
+  color: #1b7a46;
+}
+.tt-c--bad {
+  color: #c62828;
+}
+.tt-c--warn {
+  color: #b35b00;
+}
+.tt-c--blue {
+  color: #1f6fb8;
+}
+
+/* 표 */
+.tt-table {
+  width: 100%;
+  border: 1px solid #b8c6d6;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.tt-table th {
+  padding: 5px 6px;
+  border: 1px solid #d5dee8;
+  background: #dde7f2;
+  color: #13345a;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.tt-table td {
+  padding: 4px 6px;
+  border: 1px solid #d5dee8;
+}
+.tt-table tbody tr:nth-child(even) td {
+  background: #f6f9fc;
+}
+.tt-table tbody tr.is-link {
+  cursor: pointer;
+}
+.tt-table tbody tr.is-link:hover td {
+  background: #eef4fb;
+}
+.tt-table tbody tr.is-hl td {
+  background: #fff4c2;
+}
+.tt-table .c {
+  text-align: center;
+}
+.tt-table .r {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tt-table .act {
+  width: 1%;
+  text-align: center;
+  white-space: nowrap;
+}
+.tt-empty td {
+  padding: 14px;
+  color: #5d7189;
+  text-align: center;
+}
+
+/* 작은 상태 표 */
+.tt-tag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.tt-tag--ok {
+  background: #e3f5ea;
+  color: #1b7a46;
+}
+.tt-tag--bad {
+  background: #fde8e8;
+  color: #c62828;
+}
+.tt-tag--warn {
+  background: #fff1dc;
+  color: #b35b00;
+}
+.tt-tag--violet {
+  background: #efeaff;
+  color: #5b3cc4;
+}
+.tt-tag--blue {
+  background: #e3eefa;
+  color: #1f6fb8;
+}
+.tt-tag--gray {
+  background: #edf1f5;
+  color: #5d7189;
+}
+
+/* 두 칸 */
+.tt-halves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.tt-halves > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* 기능키 줄 */
+.tt-fkeys {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.tt-state {
+  padding: 18px;
+  color: #5d7189;
+  text-align: center;
+}
+.tt-state--error {
+  color: #c62828;
+}
+.tt-note {
+  color: #5d7189;
+  font-size: 10px;
+}
+
+/* 팝업 창 */
+.tt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(13, 26, 46, 0.35);
+}
+.tt-window {
+  width: 480px;
+  border: 1.5px solid #16324f;
+  background: #fff;
+  box-shadow: 4px 6px 16px rgba(0, 0, 0, 0.3);
+  font-size: 12px;
+  outline: none;
+}
+.tt-window__bar {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px 6px 10px;
+  background: #16324f;
+  color: #fff;
+}
+.tt-window__bar button {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: #b9cde3;
+}
+.tt-window__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+}
+.tt-window__body form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tt-window__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* 라디오 (있음/없음) */
+.tt-radio {
+  display: inline-flex;
+  gap: 12px;
+}
+.tt-radio label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

@@ -1,0 +1,133 @@
+/* 단말 메모·계산기 창 */
+.tw {
+  position: fixed;
+  top: 46px;
+  z-index: 50;
+  width: 260px;
+  border: 1.5px solid #16324f;
+  background: #fff;
+  box-shadow: 4px 6px 16px rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+}
+.tw__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px 5px 10px;
+  background: #16324f;
+  color: #fff;
+  font-size: 11px;
+}
+.tw__bar button {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: #b9cde3;
+}
+.tw__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+.tw-row {
+  display: flex;
+  align-items: center;
+}
+.tw-spacer {
+  flex: 1;
+}
+.tw-muted {
+  color: #5d7189;
+  font-size: 10px;
+}
+
+/* 메모 */
+.tw-memo {
+  width: 100%;
+  height: 180px;
+  padding: 6px;
+  border: 1px solid #b8c6d6;
+  background: #fffbe6;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+.tw-memo:focus {
+  border-color: #1f6fb8;
+}
+
+/* 계산기 */
+.tw-calc {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  outline: none;
+}
+.tw-calc:focus .tw-calc__screen {
+  border-color: #1f6fb8;
+}
+.tw-calc__screen {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 6px 8px;
+  border: 1px solid #b8c6d6;
+  background: #eef3f8;
+  font-variant-numeric: tabular-nums;
+}
+.tw-calc__screen small {
+  min-height: 14px;
+  color: #5d7189;
+  font-size: 10px;
+}
+.tw-calc__screen b {
+  max-width: 100%;
+  overflow: hidden;
+  color: #13345a;
+  font-size: 20px;
+  text-overflow: ellipsis;
+}
+.tw-calc__keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.tw-calc__keys button {
+  height: 30px;
+  border: 1px solid #b8c6d6;
+  border-radius: 3px;
+  background: #fff;
+  color: #13345a;
+  font-size: 13px;
+  font-weight: 500;
+}
+.tw-calc__keys button:hover {
+  background: #eef4fb;
+}
+.tw-calc__keys .is-fn {
+  background: #edf1f5;
+}
+.tw-calc__keys .is-op {
+  background: #e3eefa;
+  color: #1f6fb8;
+  font-weight: 700;
+}
+.tw-calc__keys .is-eq {
+  grid-row: span 2;
+  height: auto;
+  border-color: #1f6fb8;
+  background: #1f6fb8;
+  color: #fff;
+  font-weight: 700;
+}
+.tw-calc__keys .is-eq:hover {
+  background: #185a96;
+}
+
+@media print {
+  .tw {
+    display: none;
+  }
+}

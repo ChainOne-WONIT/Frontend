@@ -3,6 +3,8 @@ import type { AppUser } from '../api/types';
 
 export interface AuthState {
   user: AppUser | null;
+  /** 로그인한 시각 'YYYY-MM-DD HH:mm' */
+  loginAt: string | null;
   signIn: (token: string, user: AppUser) => void;
   signOut: () => Promise<void>;
 }

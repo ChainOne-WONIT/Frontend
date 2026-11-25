@@ -3,6 +3,7 @@ import type { BankRole } from './api/types';
 import { Navigate, Route, Routes } from 'react-router';
 import { BankLayout } from './layouts/BankLayout';
 import { CorpLayout } from './layouts/CorpLayout';
+import { TerminalLayout } from './layouts/TerminalLayout';
 import { useAuth } from './lib/auth-context';
 import { AlertsPage } from './pages/corp/AlertsPage';
 import { FundPage } from './pages/corp/FundPage';
@@ -23,6 +24,7 @@ import { SettingsPage } from './pages/bank/ops/SettingsPage';
 import { SignupDetailPage } from './pages/bank/ops/SignupDetailPage';
 import { SignupApprovalsPage } from './pages/bank/ops/SignupApprovalsPage';
 import { ChainPage } from './pages/bank/review/ChainPage';
+import { TerminalChainPage } from './pages/bank/review/TerminalChainPage';
 import { CompanyReviewPage } from './pages/bank/review/CompanyReviewPage';
 import { ReviewApplicationsPage } from './pages/bank/review/ReviewApplicationsPage';
 import { ReviewDashboardPage } from './pages/bank/review/ReviewDashboardPage';
@@ -70,7 +72,7 @@ export default function App() {
         path="/bank/review"
         element={
           <RequireBank role="review">
-            <BankLayout />
+            <TerminalLayout />
           </RequireBank>
         }
       >
@@ -78,7 +80,7 @@ export default function App() {
         <Route path="applications" element={<ReviewApplicationsPage />} />
         <Route path="applications/:id" element={<ReviewDetailPage />} />
         <Route path="companies" element={<CompanyReviewPage />} />
-        <Route path="chain" element={<ChainPage />} />
+        <Route path="chain" element={<TerminalChainPage />} />
       </Route>
       <Route
         path="/bank/loan"
