@@ -88,12 +88,6 @@ export function mockBankNetwork(): Promise<BankNetworkStatus> {
   );
 }
 
-export function mockLoginBank(): Promise<never> {
-  return Promise.reject(
-    new ApiError('은행 백오피스 화면은 아직 준비 중입니다.', 501, 'NOT_IMPLEMENTED'),
-  );
-}
-
 // ---------- 회원가입 ----------
 const takenIds = new Set(['hansung', 'ace', 'chungwoon', 'dongjin', 'daegwang01']);
 

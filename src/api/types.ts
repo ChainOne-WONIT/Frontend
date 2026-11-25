@@ -13,9 +13,28 @@ export interface CorpUser {
   userName: string;
 }
 
+/** 은행 직원 역할: 심사 · 여신 · 운영 */
+export type BankRole = 'review' | 'loan' | 'ops';
+
+export interface BankUser {
+  type: 'bank';
+  employeeNo: string;
+  name: string;
+  role: BankRole;
+  /** 예: '심사 담당' */
+  roleLabel: string;
+}
+
+export type AppUser = CorpUser | BankUser;
+
 export interface LoginResponse {
   accessToken: string;
   user: CorpUser;
+}
+
+export interface BankLoginResponse {
+  accessToken: string;
+  user: BankUser;
 }
 
 export interface BankNetworkStatus {
@@ -236,4 +255,152 @@ export interface MyInfo {
     agreedAt: string;
   }[];
   account: { loginId: string; accountType: string; lastLogin: string; passwordChangedAt: string };
+}
+
+// ---------- 은행 · 심사 ----------
+/** 심사 중 · 신보 심사 중 · 승인 · 제외 */
+export type ReviewStatus = 'REVIEW' | 'KODIT_REVIEW' | 'APPROVED' | 'EXCLUDED';
+export type GradeLabel = '안정' | '관찰' | '제외';
+
+/** 협력사가 거래 상대(발주처)별로 낸 한도 신청 */
+export interface ReviewApplication {
+  id: string;
+  companyId: string;
+  companyName: string;
+  /** 거래 상대 (발주처) */
+  counterpartyName: string;
+  appliedAt: string;
+  /** 예측 부실확률 (%) */
+  pd: number;
+  status: ReviewStatus;
+  /** 승인된 한도 */
+  amount?: number;
+  expireAt?: string;
+  /** 제외 사유 */
+  excludeReason?: string;
+}
+
+export interface ReviewDashboard {
+  asOf: string;
+  counts: {
+    reviewPending: number;
+    loanPending: number;
+    alertCompanies: number;
+    signupPending: number;
+  };
+  product: {
+    /** 보증 공급 총액 */
+    guaranteeTotal: number;
+    /** 승인된 업체별 한도 합계 */
+    approvedLimitSum: number;
+    /** 대출 잔액 합계 */
+    loanBalanceSum: number;
+  };
+  /** 오늘 볼 심사 */
+  today: ReviewApplication[];
+}
+
+export interface ReviewApplications {
+  asOf: string;
+  pending: ReviewApplication[];
+  done: ReviewApplication[];
+}
+
+/** 상세 조회 사유. 상세를 열 때마다 조회 기록에 남습니다. */
+export type ViewReason = '한도 심사' | '신보 승인 결과 입력' | '사후 점검' | '고객 문의 대응';
+
+export interface ReviewDetail extends ReviewApplication {
+  account: string;
+  consentCount: number;
+  consentAt: string;
+  /** ① 자격 확인 (규칙): ok=false 면 문제 있음 */
+  checks: { label: string; ok: boolean }[];
+  /** ② 등급 (모델) */
+  grade: {
+    label: GradeLabel;
+    /** 판정에 크게 영향을 준 항목. delta > 0 이면 위험을 높임 */
+    factors: { text: string; delta: number }[];
+  };
+  /** 근거 발주 */
+  order: {
+    id: string;
+    item: string;
+    amount: number;
+    dueDate: string;
+    quantity: number;
+    unit: string;
+    place: string;
+    status: OrderStatus;
+  };
+  /** 발주 연결: 시작 기업 → … → 신청 기업 */
+  chainPath: string[];
+  /** 규칙과 모델로 낸 시스템 판정 */
+  systemDecision: 'PASS' | 'EXCLUDE';
+  /** 담당자가 확정한 판정 */
+  decision?: { result: 'PASS' | 'EXCLUDE'; reason?: string; by: string; at: string };
+}
+
+export interface ReviewDecisionRequest {
+  result: 'PASS' | 'EXCLUDE';
+  /** 시스템 판정과 다르게 확정할 때 필수 */
+  reason?: string;
+}
+
+export interface KoditResultRequest {
+  approved: boolean;
+  amount?: number;
+  expireAt?: string;
+  reason?: string;
+}
+
+export interface CompanyReviewInfo {
+  id: string;
+  name: string;
+  grade: GradeLabel;
+  /** 업력 (년) */
+  years: number;
+  /** 매출 (원) */
+  revenue: number;
+  /** 부채비율 (%) */
+  debtRatio: number;
+  pd: number;
+  overdue: boolean;
+  taxArrears: boolean;
+  closed: boolean;
+  bankruptcy: boolean;
+}
+
+export type CompanyReviewPatch = Partial<
+  Pick<
+    CompanyReviewInfo,
+    'years' | 'revenue' | 'debtRatio' | 'overdue' | 'taxArrears' | 'closed' | 'bankruptcy'
+  >
+>;
+
+export interface CompanyReviewOverview {
+  asOf: string;
+  companies: CompanyReviewInfo[];
+  logs: { date: string; actor: string; text: string }[];
+}
+
+export interface ChainView {
+  asOf: string;
+  roots: { id: string; name: string }[];
+  rootId: string;
+  /** 시작 기업의 발주 합계 */
+  orderTotal: number;
+  /** 체인 안 대출 잔액 합계 */
+  loanBalance: number;
+  /** 시작 기업부터 차례로 */
+  nodes: { name: string; tier: string; stage: AlertStage }[];
+  /** nodes[i] → nodes[i+1] 사이의 발주 */
+  links: { orderId: string; amount: number }[];
+  rows: {
+    orderId: string;
+    from: string;
+    to: string;
+    amount: number;
+    status: OrderStatus;
+    loan?: { id: string; amount: number; statusLabel: string };
+  }[];
 }

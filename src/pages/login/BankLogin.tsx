@@ -1,10 +1,15 @@
 import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router';
 import { checkBankNetwork, loginBank } from '../../api/auth';
 import { USE_MOCK } from '../../api/client';
 import { Icon } from '../../components/Icon';
+import { useAuth } from '../../lib/auth-context';
 import { useAsync } from '../../lib/useAsync';
+import { MOCK_BANK_ACCOUNT } from '../../mocks/bank';
 
 export function BankLogin({ onCorp }: { onCorp: () => void }) {
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
   const net = useAsync(checkBankNetwork, []);
   const [employeeNo, setEmployeeNo] = useState('');
   const [password, setPassword] = useState('');
@@ -24,9 +29,14 @@ export function BankLogin({ onCorp }: { onCorp: () => void }) {
     setBusy(true);
     setError('');
     try {
-      await loginBank(employeeNo.trim(), password);
-      // 은행 백오피스 화면은 다음 단계에서 연결합니다.
-      setError('은행 백오피스 화면은 아직 준비 중입니다.');
+      const res = await loginBank(employeeNo.trim(), password);
+      if (res.user.role !== 'review') {
+        // 지금은 심사 담당 화면만 있습니다.
+        setError(`${res.user.roleLabel} 화면은 아직 준비 중입니다.`);
+        return;
+      }
+      signIn(res.accessToken, res.user);
+      navigate('/bank/review', { replace: true });
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -153,7 +163,8 @@ export function BankLogin({ onCorp }: { onCorp: () => void }) {
       {USE_MOCK && (
         <p className="mock-hint">
           목업 모드 · 주소에 <b>?type=bank&amp;network=internal</b> 을 붙이면 내부망 접속 화면을 볼
-          수 있습니다.
+          수 있습니다. 심사 담당 시연 계정 <b>{MOCK_BANK_ACCOUNT.employeeNo}</b> /{' '}
+          <b>{MOCK_BANK_ACCOUNT.password}</b>
         </p>
       )}
     </div>

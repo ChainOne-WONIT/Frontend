@@ -1,24 +1,24 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { logout } from '../api/auth';
 import { tokenStore } from '../api/client';
-import type { CorpUser } from '../api/types';
+import type { AppUser } from '../api/types';
 import { AuthContext } from './auth-context';
 
 const USER_KEY = 'chainone.user';
 
-function readUser(): CorpUser | null {
+function readUser(): AppUser | null {
   try {
     const raw = sessionStorage.getItem(USER_KEY);
-    return raw && tokenStore.get() ? (JSON.parse(raw) as CorpUser) : null;
+    return raw && tokenStore.get() ? (JSON.parse(raw) as AppUser) : null;
   } catch {
     return null;
   }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<CorpUser | null>(readUser);
+  const [user, setUser] = useState<AppUser | null>(readUser);
 
-  const signIn = useCallback((token: string, u: CorpUser) => {
+  const signIn = useCallback((token: string, u: AppUser) => {
     tokenStore.set(token);
     sessionStorage.setItem(USER_KEY, JSON.stringify(u));
     setUser(u);

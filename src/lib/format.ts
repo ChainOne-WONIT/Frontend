@@ -1,4 +1,4 @@
-import type { OrderStatus } from '../api/types';
+import type { OrderStatus, ViewReason } from '../api/types';
 
 /** 1_240_000_000 → '12억 4,000만 원' */
 export function won(n: number | undefined | null): string {
@@ -75,3 +75,11 @@ export function flowLabel(status: OrderStatus): string {
   const i = flowIndex(status);
   return i >= 0 ? FLOW_STEPS[i] : STATUS_LABEL[status];
 }
+
+/** 은행 상세 조회 사유 */
+export const VIEW_REASONS: ViewReason[] = [
+  '한도 심사',
+  '신보 승인 결과 입력',
+  '사후 점검',
+  '고객 문의 대응',
+];

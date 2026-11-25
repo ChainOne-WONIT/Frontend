@@ -22,7 +22,8 @@ const RING_C = 2 * Math.PI * RING_R;
 
 /** 기업 홈: 위쪽 큰 히어로(한도·요약) + 그 아래 오늘 할 일과 최근 발주 */
 export function HomePage() {
-  const { user } = useAuth();
+  const { user: authUser } = useAuth();
+  const user = authUser?.type === 'corp' ? authUser : null;
   const navigate = useNavigate();
   const { data, error, loading, reload } = useAsync(getHome, []);
   const [tab, setTab] = useState<'received' | 'sent'>('received');

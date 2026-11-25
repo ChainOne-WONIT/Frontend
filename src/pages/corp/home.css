@@ -7,13 +7,7 @@
   padding: 0 40px 96px;
   background:
     radial-gradient(circle at 85% 0%, rgba(143, 214, 255, 0.3), transparent 45%),
-    /* 반투명 파랑: 뒤의 크리스마스 배경 그림과 눈이 은은하게 비쳐 보입니다 */
-    linear-gradient(
-        135deg,
-        rgba(11, 79, 138, 0.88) 0%,
-        rgba(0, 103, 172, 0.84) 45%,
-        rgba(30, 143, 216, 0.8) 100%
-      );
+    linear-gradient(135deg, #0b4f8a 0%, #0067ac 45%, #1e8fd8 100%);
   color: #e6f1fb;
 }
 .hero__inner {

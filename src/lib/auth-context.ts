@@ -1,9 +1,9 @@
 import { createContext, useContext } from 'react';
-import type { CorpUser } from '../api/types';
+import type { AppUser } from '../api/types';
 
 export interface AuthState {
-  user: CorpUser | null;
-  signIn: (token: string, user: CorpUser) => void;
+  user: AppUser | null;
+  signIn: (token: string, user: AppUser) => void;
   signOut: () => Promise<void>;
 }
 

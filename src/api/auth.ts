@@ -1,6 +1,7 @@
 import { request, USE_MOCK } from './client';
-import type { BankNetworkStatus, LoginResponse } from './types';
+import type { BankLoginResponse, BankNetworkStatus, LoginResponse } from './types';
 import * as mock from '../mocks/db';
+import { mockLoginBank } from '../mocks/bank';
 
 /** 기업 로그인 — POST /api/auth/corp/login */
 export function loginCorp(loginId: string, password: string): Promise<LoginResponse> {
@@ -15,8 +16,8 @@ export function checkBankNetwork(): Promise<BankNetworkStatus> {
 }
 
 /** 은행 직원 로그인 — POST /api/auth/bank/login */
-export function loginBank(employeeNo: string, password: string): Promise<LoginResponse> {
-  if (USE_MOCK) return mock.mockLoginBank();
+export function loginBank(employeeNo: string, password: string): Promise<BankLoginResponse> {
+  if (USE_MOCK) return mockLoginBank(employeeNo, password);
   return request('POST', '/api/auth/bank/login', { employeeNo, password });
 }
 

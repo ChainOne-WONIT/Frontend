@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import logoMark from '../assets/logo-mark.svg';
-import { ChristmasArt } from '../components/ChristmasArt';
 import { Icon, type IconName } from '../components/Icon';
 import { useAuth } from '../lib/auth-context';
 import './CorpLayout.css';
@@ -25,7 +24,8 @@ const TITLES: [RegExp, string][] = [
 ];
 
 export function CorpLayout() {
-  const { user, signOut } = useAuth();
+  const { user: authUser, signOut } = useAuth();
+  const user = authUser?.type === 'corp' ? authUser : null;
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const title = TITLES.find(([re]) => re.test(pathname))?.[1] ?? '';
@@ -39,8 +39,6 @@ export function CorpLayout() {
 
   return (
     <div className={`corp${isHome ? ' corp--home' : ''}`}>
-      {/* 크리스마스 시즌 배경: 로그인 화면과 같은 그림과 눈. 시즌이 끝나면 이 줄만 지우면 됩니다. */}
-      <ChristmasArt background className="corp__bg" />
       {!isHome && (
         <header className="topbar">
           <Link to="/corp" className="topbar__brand">

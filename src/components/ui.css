@@ -97,3 +97,46 @@
   margin: 0;
   font-weight: 500;
 }
+
+/* 대화상자 */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(11, 31, 58, 0.45);
+}
+.modal__box {
+  width: 100%;
+  max-width: 560px;
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--white);
+  box-shadow: 0 16px 40px rgba(10, 31, 58, 0.22);
+  outline: none;
+}
+.modal__title {
+  font-size: 20px;
+  font-weight: 700;
+}
+.modal__desc {
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--gray);
+}
+.modal__field {
+  margin-top: 24px;
+}
+.modal__label {
+  font-size: 15px;
+  font-weight: 500;
+}
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
