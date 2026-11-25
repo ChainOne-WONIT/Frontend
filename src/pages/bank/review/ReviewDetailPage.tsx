@@ -25,7 +25,7 @@ export function ReviewDetailPage() {
   const [reason, setReason] = useState<ViewReason | undefined>(passed);
 
   if (!reason) {
-    return <ReasonModal onClose={() => navigate(LIST)} onOpen={setReason} />;
+    return <ReasonModal<ViewReason> onClose={() => navigate(LIST)} onOpen={setReason} />;
   }
   return <DetailView id={id} reason={reason} />;
 }
@@ -77,7 +77,9 @@ function DetailView({ id, reason }: { id: string; reason: ViewReason }) {
           <div className="rv-grade">
             <b className={`rv-grade__pd rv-grade__pd--${GRADE_TONE[d.grade.label]}`}>{d.pd}%</b>
             <Pill tone={GRADE_TONE[d.grade.label]}>{d.grade.label}</Pill>
-            <span className="small muted">예측 부실확률 · 안정 4% 미만 / 제외 8% 이상</span>
+            <span className="small muted">
+              예측 부실확률 · 안정 {d.grade.stableBelow}% 미만 / 제외 {d.grade.excludeFrom}% 이상
+            </span>
           </div>
           <h3 className="rv-sub">판정에 크게 영향을 준 항목</h3>
           <ul className="rv-factors">

@@ -320,6 +320,9 @@ export interface ReviewDetail extends ReviewApplication {
     label: GradeLabel;
     /** 판정에 크게 영향을 준 항목. delta > 0 이면 위험을 높임 */
     factors: { text: string; delta: number }[];
+    /** 등급 기준 (운영 설정값): 안정 기준 미만 / 제외 기준 이상 */
+    stableBelow: number;
+    excludeFrom: number;
   };
   /** 근거 발주 */
   order: {
@@ -403,4 +406,113 @@ export interface ChainView {
     status: OrderStatus;
     loan?: { id: string; amount: number; statusLabel: string };
   }[];
+}
+
+// ---------- 은행 · 공통 ----------
+/** 은행 역할 공통 집계 (대시보드 위 숫자 4칸과 상품 전체 한도) */
+export interface BankSummary {
+  counts: {
+    reviewPending: number;
+    loanPending: number;
+    alertCompanies: number;
+    signupPending: number;
+  };
+  product: ReviewDashboard['product'];
+}
+
+/** 처리·조회 기록 한 줄. 고치거나 지울 수 없습니다. */
+export interface AuditLog {
+  id: string;
+  /** 'YYYY-MM-DD HH:mm' */
+  at: string;
+  /** 예: '김하늘(심사)' */
+  actor: string;
+  kind: '조회' | '처리';
+  content: string;
+  target: string;
+}
+
+// ---------- 은행 · 운영 ----------
+export interface SignupApplication {
+  id: string;
+  loginId: string;
+  companyName: string;
+  bizNo: string;
+  ceoName: string;
+  industry: string;
+  email: string;
+  appliedAt: string;
+  /** 선택 동의 */
+  consents: { financialInfo: boolean; creditInfo: boolean };
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  decidedAt?: string;
+  decidedBy?: string;
+  rejectReason?: string;
+}
+
+/** 가입 신청서에 적힌 나머지 내용 (상세 화면에서만 보임) */
+export interface SignupExtra {
+  /** 'YYYY-MM-DD HH:mm' */
+  appliedTime: string;
+  zipCode: string;
+  address: string;
+  addressDetail: string;
+  manager: SignupRequest['manager'];
+  notifications: SignupRequest['notifications'];
+}
+
+/** 가입 신청 상세 — 운영 02-1 */
+export interface SignupDetail extends SignupApplication, SignupExtra {
+  consentList: { key: ConsentKey; label: string; required: boolean; agreed: boolean }[];
+  /** 신청 정보만으로 확인한 결과 */
+  checks: { label: string; result: string; ok: boolean }[];
+}
+
+/** 가입 신청 상세를 열 때 고르는 조회 사유 */
+export type SignupViewReason = '가입 심사' | '고객 문의 대응' | '사후 점검';
+
+export interface SignupApprovals {
+  asOf: string;
+  pending: SignupApplication[];
+  rejected: SignupApplication[];
+  approved: SignupApplication[];
+}
+
+export interface OpsDashboard extends BankSummary {
+  asOf: string;
+  pendingSignups: SignupApplication[];
+  recentLogs: AuditLog[];
+}
+
+export interface OpsSettings {
+  /** 등급 기준 (예측 부실확률 %) */
+  grade: { stableBelow: number; excludeFrom: number; perOrderRatio: number };
+  /** 경보 가중치 (점) */
+  weights: {
+    payDelay: number;
+    repayDelay: number;
+    orderDrop: number;
+    deliveryDelay: number;
+    event: number;
+  };
+  /** 경보 단계 기준 (점 이상) */
+  stages: { watch: number; caution: number; alert: number };
+}
+
+export interface SettingsOverview {
+  settings: OpsSettings;
+  logs: { date: string; actor: string; text: string }[];
+}
+
+export interface AuditQuery {
+  from?: string;
+  to?: string;
+  actor?: string;
+  kind?: AuditLog['kind'];
+}
+
+export interface AuditLogs {
+  asOf: string;
+  actors: string[];
+  logs: AuditLog[];
 }

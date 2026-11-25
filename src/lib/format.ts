@@ -1,4 +1,4 @@
-import type { OrderStatus, ViewReason } from '../api/types';
+import type { BankRole, OrderStatus, SignupViewReason, ViewReason } from '../api/types';
 
 /** 1_240_000_000 → '12억 4,000만 원' */
 export function won(n: number | undefined | null): string {
@@ -83,3 +83,12 @@ export const VIEW_REASONS: ViewReason[] = [
   '사후 점검',
   '고객 문의 대응',
 ];
+
+/** 은행 직원이 로그인하면 처음 볼 화면. 화면이 아직 없는 역할(여신)은 빠져 있습니다. */
+export const BANK_HOME: Partial<Record<BankRole, string>> = {
+  review: '/bank/review',
+  ops: '/bank/ops',
+};
+
+/** 운영 담당이 가입 신청 상세를 열 때 고르는 사유 */
+export const SIGNUP_VIEW_REASONS: SignupViewReason[] = ['가입 심사', '고객 문의 대응', '사후 점검'];

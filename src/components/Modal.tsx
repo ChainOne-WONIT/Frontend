@@ -58,17 +58,22 @@ export function Modal({
   );
 }
 
-/** 상세 조회 사유 선택. 사유를 고른 뒤에만 상세가 열리고, 조회 기록이 남습니다. */
-export function ReasonModal({
+/**
+ * 상세 조회 사유 선택. 사유를 고른 뒤에만 상세가 열리고, 조회 기록이 남습니다.
+ * reasons를 주지 않으면 심사 담당의 사유 목록을 씁니다.
+ */
+export function ReasonModal<R extends string = ViewReason>({
   onClose,
   onOpen,
-  defaultReason = '한도 심사',
+  reasons = VIEW_REASONS as unknown as readonly R[],
+  defaultReason,
 }: {
   onClose: () => void;
-  onOpen: (reason: ViewReason) => void;
-  defaultReason?: ViewReason;
+  onOpen: (reason: R) => void;
+  reasons?: readonly R[];
+  defaultReason?: R;
 }) {
-  const [reason, setReason] = useState<ViewReason>(defaultReason);
+  const [reason, setReason] = useState<R>(defaultReason ?? reasons[0]);
   const id = useId();
   return (
     <Modal
@@ -92,9 +97,9 @@ export function ReasonModal({
           id={id}
           className="input"
           value={reason}
-          onChange={(e) => setReason(e.target.value as ViewReason)}
+          onChange={(e) => setReason(e.target.value as R)}
         >
-          {VIEW_REASONS.map((r) => (
+          {reasons.map((r) => (
             <option key={r}>{r}</option>
           ))}
         </select>

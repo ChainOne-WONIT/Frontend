@@ -176,6 +176,21 @@
   color: var(--amber);
   font-size: 12px;
 }
+.mock-accounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.mock-accounts span {
+  margin-right: 6px;
+}
+.mock-accounts em {
+  font-style: normal;
+  opacity: 0.8;
+}
 
 /* 화면 높이가 낮을 때(노트북 등) 은행 차단 화면까지 한 화면에 들어가도록 간격을 줄입니다 */
 @media (max-height: 880px) {

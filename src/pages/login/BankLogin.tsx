@@ -5,7 +5,8 @@ import { USE_MOCK } from '../../api/client';
 import { Icon } from '../../components/Icon';
 import { useAuth } from '../../lib/auth-context';
 import { useAsync } from '../../lib/useAsync';
-import { MOCK_BANK_ACCOUNT } from '../../mocks/bank';
+import { BANK_HOME } from '../../lib/format';
+import { MOCK_BANK_ACCOUNTS } from '../../mocks/bank';
 
 export function BankLogin({ onCorp }: { onCorp: () => void }) {
   const { signIn } = useAuth();
@@ -30,13 +31,14 @@ export function BankLogin({ onCorp }: { onCorp: () => void }) {
     setError('');
     try {
       const res = await loginBank(employeeNo.trim(), password);
-      if (res.user.role !== 'review') {
-        // 지금은 심사 담당 화면만 있습니다.
+      const home = BANK_HOME[res.user.role];
+      if (!home) {
+        // 여신 담당 화면은 아직 없습니다.
         setError(`${res.user.roleLabel} 화면은 아직 준비 중입니다.`);
         return;
       }
       signIn(res.accessToken, res.user);
-      navigate('/bank/review', { replace: true });
+      navigate(home, { replace: true });
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -161,11 +163,21 @@ export function BankLogin({ onCorp }: { onCorp: () => void }) {
       )}
 
       {USE_MOCK && (
-        <p className="mock-hint">
-          목업 모드 · 주소에 <b>?type=bank&amp;network=internal</b> 을 붙이면 내부망 접속 화면을 볼
-          수 있습니다. 심사 담당 시연 계정 <b>{MOCK_BANK_ACCOUNT.employeeNo}</b> /{' '}
-          <b>{MOCK_BANK_ACCOUNT.password}</b>
-        </p>
+        <div className="mock-hint">
+          <p>
+            목업 모드 · 주소에 <b>?type=bank&amp;network=internal</b> 을 붙이면 내부망 접속 화면에서
+            로그인할 수 있습니다.
+          </p>
+          <ul className="mock-accounts">
+            {MOCK_BANK_ACCOUNTS.map((a) => (
+              <li key={a.employeeNo}>
+                <span>{a.roleLabel}</span>
+                <b>{a.employeeNo}</b> / <b>{a.password}</b>
+                {!a.ready && <em> (화면 준비 중)</em>}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

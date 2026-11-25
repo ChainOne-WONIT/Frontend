@@ -17,6 +17,7 @@ import type {
   SignupRequest,
   SignupResponse,
 } from '../api/types';
+import { addSignupApplication } from './shared';
 
 const ME = { id: 'X', name: '한성모터스(주)' };
 const today = () => new Date().toISOString().slice(0, 10);
@@ -109,6 +110,27 @@ export function mockSignup(req: SignupRequest): Promise<SignupResponse> {
     );
   }
   takenIds.add(req.account.loginId);
+  addSignupApplication(
+    {
+      loginId: req.account.loginId,
+      companyName: req.company.name,
+      bizNo: req.company.bizNo,
+      ceoName: req.company.ceoName,
+      industry: req.company.industry,
+      email: req.manager.email,
+      consents: {
+        financialInfo: req.consents.financialInfo,
+        creditInfo: req.consents.creditInfo,
+      },
+    },
+    {
+      zipCode: req.company.zipCode,
+      address: req.company.address,
+      addressDetail: req.company.addressDetail,
+      manager: req.manager,
+      notifications: req.notifications,
+    },
+  );
   const now = new Date();
   const pad = (n: number) => String(n).padStart(2, '0');
   return mockDelay(

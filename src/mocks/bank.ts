@@ -2,6 +2,8 @@
 import { ApiError, mockDelay } from '../api/client';
 import type {
   BankLoginResponse,
+  BankUser,
+  BankSummary,
   ChainView,
   CompanyReviewInfo,
   CompanyReviewOverview,
@@ -15,40 +17,62 @@ import type {
   ReviewDetail,
   ViewReason,
 } from '../api/types';
+import { won } from '../lib/format';
+import { addAudit, settings, signupApps } from './shared';
 
 const AS_OF = '2026-11-23';
+const REVIEWER = '김하늘(심사)';
 const today = () => new Date().toISOString().slice(0, 10);
 const addYear = (d: string) => `${Number(d.slice(0, 4)) + 1}${d.slice(4)}`;
 
 // ---------- 로그인 ----------
-/** 시연용 은행 직원 계정. 지금은 심사 담당만 화면이 있습니다. */
-export const MOCK_BANK_ACCOUNT = { employeeNo: 'review01', password: 'chainone1!' };
-const OTHER_ROLES: Record<string, string> = { loan01: '여신', ops01: '운영' };
+/** 시연용 은행 직원 계정. 여신 담당 화면은 아직 없습니다. */
+export const MOCK_BANK_ACCOUNTS: (BankUser & { password: string; ready: boolean })[] = [
+  {
+    type: 'bank',
+    employeeNo: 'review01',
+    password: 'chainone1!',
+    name: '김하늘',
+    role: 'review',
+    roleLabel: '심사 담당',
+    ready: true,
+  },
+  {
+    type: 'bank',
+    employeeNo: 'ops01',
+    password: 'chainone1!',
+    name: '박서진',
+    role: 'ops',
+    roleLabel: '운영 담당',
+    ready: true,
+  },
+  {
+    type: 'bank',
+    employeeNo: 'loan01',
+    password: 'chainone1!',
+    name: '이도윤',
+    role: 'loan',
+    roleLabel: '여신 담당',
+    ready: false,
+  },
+];
 
 export function mockLoginBank(employeeNo: string, password: string): Promise<BankLoginResponse> {
-  if (OTHER_ROLES[employeeNo] && password === MOCK_BANK_ACCOUNT.password) {
-    return Promise.reject(
-      new ApiError(
-        `${OTHER_ROLES[employeeNo]} 담당 화면은 아직 준비 중입니다.`,
-        501,
-        'NOT_IMPLEMENTED',
-      ),
-    );
-  }
-  if (employeeNo !== MOCK_BANK_ACCOUNT.employeeNo || password !== MOCK_BANK_ACCOUNT.password) {
+  const acc = MOCK_BANK_ACCOUNTS.find((a) => a.employeeNo === employeeNo);
+  if (!acc || acc.password !== password) {
     return Promise.reject(
       new ApiError('직원번호 또는 비밀번호가 맞지 않습니다.', 401, 'INVALID_CREDENTIALS'),
     );
   }
+  if (!acc.ready) {
+    return Promise.reject(
+      new ApiError(`${acc.roleLabel} 화면은 아직 준비 중입니다.`, 501, 'NOT_IMPLEMENTED'),
+    );
+  }
+  const { type, name, role, roleLabel } = acc;
   return mockDelay({
-    accessToken: 'mock-token-review01',
-    user: {
-      type: 'bank',
-      employeeNo,
-      name: '김하늘',
-      role: 'review',
-      roleLabel: '심사 담당',
-    },
+    accessToken: `mock-token-${employeeNo}`,
+    user: { type, employeeNo, name, role, roleLabel },
   });
 }
 
@@ -122,13 +146,14 @@ const companies: CompanyReviewInfo[] = [
 ];
 
 const editLogs: CompanyReviewOverview['logs'] = [
-  { date: '2026-11-20', actor: '김하늘(심사)', text: '동진산업(주) · 세금 체납 없음 → 있음' },
-  { date: '2026-11-12', actor: '김하늘(심사)', text: '청운테크(주) · 부채비율 190% → 210%' },
+  { date: '2026-11-20', actor: REVIEWER, text: '동진산업(주) · 세금 체납 없음 → 있음' },
+  { date: '2026-11-12', actor: REVIEWER, text: '청운테크(주) · 부채비율 190% → 210%' },
 ];
 
-/** 예측 부실확률로 등급: 4% 미만 안정 · 8% 이상 제외 · 그 사이 관찰 */
+/** 예측 부실확률로 등급: 안정 기준 미만 안정 · 제외 기준 이상 제외 · 그 사이 관찰 (운영 설정값) */
 function gradeOf(pd: number): GradeLabel {
-  return pd < 4 ? '안정' : pd >= 8 ? '제외' : '관찰';
+  const g = settings.grade;
+  return pd < g.stableBelow ? '안정' : pd >= g.excludeFrom ? '제외' : '관찰';
 }
 
 // ---------- 한도 신청 ----------
@@ -270,12 +295,9 @@ const extras: Record<string, Extra> = {
       status: 'PENDING',
     },
     chainPath: ['한성모터스(주)', '에이스정밀(주)', '청운테크(주)'],
-    decision: { result: 'PASS', by: '김하늘(심사)', at: '2026-11-19' },
+    decision: { result: 'PASS', by: REVIEWER, at: '2026-11-19' },
   },
 };
-
-/** 조회 기록 (운영 담당 화면에서 볼 내용) */
-export const viewLogs: { at: string; who: string; target: string; reason: ViewReason }[] = [];
 
 function find(id: string) {
   const a = applications.find((x) => x.id === id);
@@ -314,7 +336,12 @@ function toDetail(a: ReviewApplication): ReviewDetail {
     consentCount: 5,
     consentAt: a.appliedAt,
     checks,
-    grade: { label, factors: e.factors },
+    grade: {
+      label,
+      factors: e.factors,
+      stableBelow: settings.grade.stableBelow,
+      excludeFrom: settings.grade.excludeFrom,
+    },
     order: e.order,
     chainPath: e.chainPath,
     systemDecision: checks.every((x) => x.ok) && label !== '제외' ? 'PASS' : 'EXCLUDE',
@@ -326,23 +353,30 @@ function toDetail(a: ReviewApplication): ReviewDetail {
 /** 이 목록 밖에서 이미 승인된 한도 합계 (상품 전체 한도 집계용) */
 const OTHER_APPROVED_LIMIT = 800_000_000;
 
-export function mockReviewDashboard(): Promise<ReviewDashboard> {
+/** 은행 역할 공통 집계. 운영 대시보드에서도 씁니다. */
+export function bankSummary(): BankSummary {
   const approved = applications.filter((a) => a.status === 'APPROVED');
-  return mockDelay({
-    asOf: AS_OF,
+  return {
     counts: {
       reviewPending: applications.filter(
         (a) => a.status === 'REVIEW' || a.status === 'KODIT_REVIEW',
       ).length,
       loanPending: 2,
       alertCompanies: 2,
-      signupPending: 1,
+      signupPending: signupApps.filter((s) => s.status === 'PENDING').length,
     },
     product: {
       guaranteeTotal: 20_000_000_000,
       approvedLimitSum: OTHER_APPROVED_LIMIT + approved.reduce((s, a) => s + (a.amount ?? 0), 0),
       loanBalanceSum: 2_130_000_000,
     },
+  };
+}
+
+export function mockReviewDashboard(): Promise<ReviewDashboard> {
+  return mockDelay({
+    asOf: AS_OF,
+    ...bankSummary(),
     today: applications.filter((a) => a.status === 'REVIEW' || a.status === 'KODIT_REVIEW'),
   });
 }
@@ -358,11 +392,11 @@ export function mockReviewApplications(): Promise<ReviewApplications> {
 export function mockReviewDetail(id: string, reason: ViewReason): Promise<ReviewDetail> {
   try {
     const a = find(id);
-    viewLogs.unshift({
-      at: new Date().toISOString(),
-      who: '김하늘(심사)',
-      target: `${a.companyName} 한도 신청`,
-      reason,
+    addAudit({
+      actor: REVIEWER,
+      kind: '조회',
+      content: `심사 상세 조회 (사유: ${reason})`,
+      target: `${a.id} ${a.companyName}`,
     });
     return mockDelay(toDetail(a));
   } catch (e) {
@@ -385,7 +419,7 @@ export function mockReviewDecision(id: string, req: ReviewDecisionRequest): Prom
     const decision = {
       result: req.result,
       reason: req.reason?.trim() || undefined,
-      by: '김하늘(심사)',
+      by: REVIEWER,
       at: today(),
     };
     extras[id] = {
@@ -397,6 +431,12 @@ export function mockReviewDecision(id: string, req: ReviewDecisionRequest): Prom
       }),
       decision,
     };
+    addAudit({
+      actor: REVIEWER,
+      kind: '처리',
+      content: `한도 심사 ${req.result === 'PASS' ? '통과' : '제외'}로 확정`,
+      target: `${a.id} ${a.companyName}`,
+    });
     if (req.result === 'PASS') {
       a.status = 'KODIT_REVIEW';
     } else {
@@ -425,6 +465,12 @@ export function mockKoditResult(id: string, req: KoditResultRequest): Promise<Re
       a.status = 'EXCLUDED';
       a.excludeReason = req.reason?.trim() || '신보 거절';
     }
+    addAudit({
+      actor: REVIEWER,
+      kind: '처리',
+      content: req.approved ? `신보 승인 결과 입력: ${won(a.amount)}` : '신보 거절 입력',
+      target: `${a.id} ${a.companyName}`,
+    });
     return mockDelay(toDetail(a));
   } catch (e) {
     return Promise.reject(e);
@@ -473,9 +519,15 @@ export function mockUpdateCompanyReview(
       applications.filter((a) => a.companyId === id).forEach((a) => (a.pd = c.pd));
     }
     c.grade = gradeOf(c.pd);
+    addAudit({
+      actor: REVIEWER,
+      kind: '처리',
+      content: `기업 심사 정보 수정: ${changes.join(', ')}`,
+      target: c.name,
+    });
     editLogs.unshift({
       date: today(),
-      actor: '김하늘(심사)',
+      actor: REVIEWER,
       text: `${c.name} · ${changes.join(', ')}`,
     });
   }

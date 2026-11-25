@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { BankRole } from './api/types';
 import { Navigate, Route, Routes } from 'react-router';
 import { BankLayout } from './layouts/BankLayout';
 import { CorpLayout } from './layouts/CorpLayout';
@@ -10,6 +11,11 @@ import { MyInfoPage } from './pages/corp/MyInfoPage';
 import { OrderDetailPage } from './pages/corp/OrderDetailPage';
 import { OrderNewPage } from './pages/corp/OrderNewPage';
 import { OrdersPage } from './pages/corp/OrdersPage';
+import { AuditLogPage } from './pages/bank/ops/AuditLogPage';
+import { OpsDashboardPage } from './pages/bank/ops/OpsDashboardPage';
+import { SettingsPage } from './pages/bank/ops/SettingsPage';
+import { SignupDetailPage } from './pages/bank/ops/SignupDetailPage';
+import { SignupApprovalsPage } from './pages/bank/ops/SignupApprovalsPage';
 import { ChainPage } from './pages/bank/review/ChainPage';
 import { CompanyReviewPage } from './pages/bank/review/CompanyReviewPage';
 import { ReviewApplicationsPage } from './pages/bank/review/ReviewApplicationsPage';
@@ -23,10 +29,10 @@ function RequireCorp({ children }: { children: ReactNode }) {
   return user?.type === 'corp' ? children : <Navigate to="/login" replace />;
 }
 
-/** 은행 심사 담당만 들어올 수 있습니다. */
-function RequireReviewer({ children }: { children: ReactNode }) {
+/** 해당 역할의 은행 직원만 들어올 수 있습니다. */
+function RequireBank({ role, children }: { role: BankRole; children: ReactNode }) {
   const { user } = useAuth();
-  return user?.type === 'bank' && user.role === 'review' ? (
+  return user?.type === 'bank' && user.role === role ? (
     children
   ) : (
     <Navigate to="/login?type=bank" replace />
@@ -57,9 +63,9 @@ export default function App() {
       <Route
         path="/bank/review"
         element={
-          <RequireReviewer>
+          <RequireBank role="review">
             <BankLayout />
-          </RequireReviewer>
+          </RequireBank>
         }
       >
         <Route index element={<ReviewDashboardPage />} />
@@ -67,6 +73,20 @@ export default function App() {
         <Route path="applications/:id" element={<ReviewDetailPage />} />
         <Route path="companies" element={<CompanyReviewPage />} />
         <Route path="chain" element={<ChainPage />} />
+      </Route>
+      <Route
+        path="/bank/ops"
+        element={
+          <RequireBank role="ops">
+            <BankLayout />
+          </RequireBank>
+        }
+      >
+        <Route index element={<OpsDashboardPage />} />
+        <Route path="signups" element={<SignupApprovalsPage />} />
+        <Route path="signups/:id" element={<SignupDetailPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="logs" element={<AuditLogPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
