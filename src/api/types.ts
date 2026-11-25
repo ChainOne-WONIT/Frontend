@@ -534,3 +534,139 @@ export interface AuditLogs {
   actors: string[];
   logs: AuditLog[];
 }
+
+// ---------- 은행 · 여신 ----------
+/** 승인 대기 · 보류 · 실행 · 연체 · 상환 완료 */
+export type LoanStatus = 'PENDING' | 'HOLD' | 'EXECUTED' | 'OVERDUE' | 'REPAID';
+
+/** 여신 담당이 대출·경보 상세를 열 때 고르는 조회 사유 */
+export type LoanViewReason = '승인 심사' | '사후관리' | '고객 문의 대응';
+
+export interface LoanRow {
+  id: string;
+  companyName: string;
+  orderId: string;
+  orderItem: string;
+  /** 근거 발주의 발주처 */
+  counterpartyName: string;
+  amount: number;
+  status: LoanStatus;
+  /** 확인 항목 표시 개수 */
+  flagCount: number;
+  appliedAt: string;
+  executedAt?: string;
+  dueDate?: string;
+}
+
+export interface LoanList {
+  asOf: string;
+  pending: LoanRow[];
+  loans: LoanRow[];
+  /** 받는 기업이 "받지 못함"을 누른 발주 */
+  paymentDelays: {
+    orderId: string;
+    item: string;
+    from: string;
+    to: string;
+    amount: number;
+    payDueDate: string;
+  }[];
+}
+
+export interface LoanDetail extends LoanRow {
+  orderAmount: number;
+  /** 건별 한도 비율 (%) */
+  ratio: number;
+  orderStatus: OrderStatus;
+  chainPath: string[];
+  limit: { amount: number; used: number };
+  grade: GradeLabel;
+  alertStage: AlertStage;
+  /** 대금 수령 계좌 (실행·회수 계좌) */
+  account: string;
+  /** 들여다볼 곳을 알려 주는 표시. 거절 사유가 아닙니다. */
+  flags: { id: string; title: string; detail: string; checked: boolean }[];
+  holdReason?: string;
+  decidedBy?: string;
+  decidedAt?: string;
+}
+
+export type RiskSignalKind = 'payDelay' | 'repayDelay' | 'orderDrop' | 'deliveryDelay' | 'event';
+
+export interface RiskSignal {
+  kind: RiskSignalKind;
+  label: string;
+  detail: string;
+  /** 운영 설정의 경보 가중치 */
+  points: number;
+}
+
+export type AlertActionType = '관찰 강화' | '거래처 통지' | '담당자 면담' | '조치 완료';
+
+export interface RiskAlert {
+  id: string;
+  companyName: string;
+  /** 예: '3차 협력사' */
+  tier: string;
+  industry: string;
+  signals: RiskSignal[];
+  score: number;
+  stage: AlertStage;
+  /** 부도·회생 신청·휴폐업으로 바로 경보 */
+  immediate?: string;
+  actions: { type: AlertActionType; by: string; at: string }[];
+  /** 전이 계산: 엮인 기업 */
+  propagation: {
+    name: string;
+    distance: number;
+    /** 의존도 (%) */
+    dependency: number;
+    exposure: number;
+    grade: GradeLabel;
+    /** 위험도 0~100 */
+    risk: number;
+  }[];
+}
+
+export interface RiskAlerts {
+  asOf: string;
+  stats: {
+    alertCompanies: number;
+    cautionOrAbove: number;
+    newSignalsThisWeek: number;
+    actionsDone: number;
+  };
+  /** 운영 설정의 경보 단계 기준과 가중치 */
+  stages: OpsSettings['stages'];
+  weights: OpsSettings['weights'];
+  alerts: RiskAlert[];
+}
+
+/** 경보 상세: 점수 기준을 함께 돌려줍니다 */
+export interface AlertDetail extends RiskAlert {
+  stages: OpsSettings['stages'];
+}
+
+export interface LoanDashboard extends BankSummary {
+  asOf: string;
+  pendingLoans: LoanRow[];
+  alerts: RiskAlert[];
+}
+
+export type RiskEventType = '체납' | '신용등급 하락' | '부도' | '회생 신청' | '휴·폐업';
+
+export interface RiskEvent {
+  id: string;
+  companyName: string;
+  type: RiskEventType;
+  detail?: string;
+  occurredAt: string;
+  registeredBy: string;
+  cancelled: boolean;
+}
+
+export interface RiskEvents {
+  asOf: string;
+  companies: string[];
+  events: RiskEvent[];
+}

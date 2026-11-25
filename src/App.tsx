@@ -11,6 +11,12 @@ import { MyInfoPage } from './pages/corp/MyInfoPage';
 import { OrderDetailPage } from './pages/corp/OrderDetailPage';
 import { OrderNewPage } from './pages/corp/OrderNewPage';
 import { OrdersPage } from './pages/corp/OrdersPage';
+import { AlertDetailPage } from './pages/bank/loan/AlertDetailPage';
+import { EventsPage } from './pages/bank/loan/EventsPage';
+import { LoanDashboardPage } from './pages/bank/loan/LoanDashboardPage';
+import { LoanDetailPage } from './pages/bank/loan/LoanDetailPage';
+import { LoansPage } from './pages/bank/loan/LoansPage';
+import { RiskAlertsPage } from './pages/bank/loan/RiskAlertsPage';
 import { AuditLogPage } from './pages/bank/ops/AuditLogPage';
 import { OpsDashboardPage } from './pages/bank/ops/OpsDashboardPage';
 import { SettingsPage } from './pages/bank/ops/SettingsPage';
@@ -72,6 +78,22 @@ export default function App() {
         <Route path="applications" element={<ReviewApplicationsPage />} />
         <Route path="applications/:id" element={<ReviewDetailPage />} />
         <Route path="companies" element={<CompanyReviewPage />} />
+        <Route path="chain" element={<ChainPage />} />
+      </Route>
+      <Route
+        path="/bank/loan"
+        element={
+          <RequireBank role="loan">
+            <BankLayout />
+          </RequireBank>
+        }
+      >
+        <Route index element={<LoanDashboardPage />} />
+        <Route path="loans" element={<LoansPage />} />
+        <Route path="loans/:id" element={<LoanDetailPage />} />
+        <Route path="alerts" element={<RiskAlertsPage />} />
+        <Route path="alerts/:id" element={<AlertDetailPage />} />
+        <Route path="events" element={<EventsPage />} />
         <Route path="chain" element={<ChainPage />} />
       </Route>
       <Route

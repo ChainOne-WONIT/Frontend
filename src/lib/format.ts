@@ -1,4 +1,10 @@
-import type { BankRole, OrderStatus, SignupViewReason, ViewReason } from '../api/types';
+import type {
+  BankRole,
+  LoanViewReason,
+  OrderStatus,
+  SignupViewReason,
+  ViewReason,
+} from '../api/types';
 
 /** 1_240_000_000 → '12억 4,000만 원' */
 export function won(n: number | undefined | null): string {
@@ -88,7 +94,11 @@ export const VIEW_REASONS: ViewReason[] = [
 export const BANK_HOME: Partial<Record<BankRole, string>> = {
   review: '/bank/review',
   ops: '/bank/ops',
+  loan: '/bank/loan',
 };
 
 /** 운영 담당이 가입 신청 상세를 열 때 고르는 사유 */
 export const SIGNUP_VIEW_REASONS: SignupViewReason[] = ['가입 심사', '고객 문의 대응', '사후 점검'];
+
+/** 여신 담당이 대출·경보 상세를 열 때 고르는 사유 */
+export const LOAN_VIEW_REASONS: LoanViewReason[] = ['승인 심사', '사후관리', '고객 문의 대응'];

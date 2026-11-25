@@ -10,7 +10,7 @@ import './BankLayout.css';
 
 type Menu = { to: string; label: string; icon: IconName; end?: boolean }[];
 
-/** 역할별 메뉴와 상단 바 제목. 여신 담당은 화면을 만들 때 여기에 더합니다. */
+/** 역할별 메뉴와 상단 바 제목 */
 const ROLES: Partial<Record<BankRole, { home: string; menu: Menu; titles: [RegExp, string][] }>> = {
   review: {
     home: BANK_HOME.review!,
@@ -26,6 +26,25 @@ const ROLES: Partial<Record<BankRole, { home: string; menu: Menu; titles: [RegEx
       [/^\/bank\/review\/companies/, '기업 심사 정보'],
       [/^\/bank\/review\/chain/, '체인 조회'],
       [/^\/bank\/review/, '대시보드'],
+    ],
+  },
+  loan: {
+    home: BANK_HOME.loan!,
+    menu: [
+      { to: '/bank/loan', label: '대시보드', icon: 'grid', end: true },
+      { to: '/bank/loan/loans', label: '대출', icon: 'bank' },
+      { to: '/bank/loan/alerts', label: '리스크 경보', icon: 'alert' },
+      { to: '/bank/loan/events', label: '이벤트 신호 등록', icon: 'flag' },
+      { to: '/bank/loan/chain', label: '체인 조회', icon: 'link' },
+    ],
+    titles: [
+      [/^\/bank\/loan\/loans\/.+/, '대출 상세'],
+      [/^\/bank\/loan\/loans/, '대출'],
+      [/^\/bank\/loan\/alerts\/.+/, '경보 상세'],
+      [/^\/bank\/loan\/alerts/, '리스크 경보'],
+      [/^\/bank\/loan\/events/, '이벤트 신호 등록'],
+      [/^\/bank\/loan\/chain/, '체인 조회'],
+      [/^\/bank\/loan/, '대시보드'],
     ],
   },
   ops: {

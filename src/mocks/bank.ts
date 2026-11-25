@@ -23,6 +23,7 @@ import type {
   ViewReason,
 } from '../api/types';
 import { won } from '../lib/format';
+import { loanCounts } from './loan-data';
 import { addAudit, settings, signupApps } from './shared';
 
 const AS_OF = '2026-11-23';
@@ -31,7 +32,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 const addYear = (d: string) => `${Number(d.slice(0, 4)) + 1}${d.slice(4)}`;
 
 // ---------- 로그인 ----------
-/** 시연용 은행 직원 계정. 여신 담당 화면은 아직 없습니다. */
+/** 시연용 은행 직원 계정 */
 export const MOCK_BANK_ACCOUNTS: (BankUser & { password: string; ready: boolean })[] = [
   {
     type: 'bank',
@@ -58,7 +59,7 @@ export const MOCK_BANK_ACCOUNTS: (BankUser & { password: string; ready: boolean 
     name: '이도윤',
     role: 'loan',
     roleLabel: '여신 담당',
-    ready: false,
+    ready: true,
   },
 ];
 
@@ -366,14 +367,14 @@ export function bankSummary(): BankSummary {
       reviewPending: applications.filter(
         (a) => a.status === 'REVIEW' || a.status === 'KODIT_REVIEW',
       ).length,
-      loanPending: 2,
-      alertCompanies: 2,
+      loanPending: loanCounts().loanPending,
+      alertCompanies: loanCounts().alertCompanies,
       signupPending: signupApps.filter((s) => s.status === 'PENDING').length,
     },
     product: {
       guaranteeTotal: 20_000_000_000,
       approvedLimitSum: OTHER_APPROVED_LIMIT + approved.reduce((s, a) => s + (a.amount ?? 0), 0),
-      loanBalanceSum: 2_130_000_000,
+      loanBalanceSum: loanCounts().loanBalance,
     },
   };
 }

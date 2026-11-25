@@ -1,0 +1,87 @@
+/* 여신 담당 화면 */
+
+/* 대출 상세: 확인 항목 */
+.ln-check {
+  padding: 4px 12px;
+  border: 1px solid var(--amber-line);
+  border-radius: 999px;
+  background: var(--amber-bg);
+  color: var(--amber);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ln-check.is-on {
+  border-color: var(--green-line);
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+/* 리스크 경보: 점수 기준 */
+.ln-stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  font-size: 14px;
+  color: var(--sub);
+}
+.ln-stages > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 경보 상세 */
+.ln-score {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.ln-score__num {
+  font-size: 34px;
+  line-height: 1.1;
+}
+.ln-score__num--warn {
+  color: var(--amber);
+}
+.ln-score__num--bad {
+  color: var(--red);
+}
+.ln-score__num--ok {
+  color: var(--green);
+}
+.ln-points {
+  color: var(--red);
+}
+.ln-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ln-risk {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 200px;
+}
+.bar > i.ln-risk--high {
+  background: #f79009;
+}
+.bar > i.ln-risk--mid {
+  background: #12b76a;
+}
+.bar > i.ln-risk--low {
+  background: #12b76a;
+}
+
+/* 이벤트 신호 등록 */
+.ln-form {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 16px;
+}
+.ln-cancelled td {
+  color: var(--muted);
+}

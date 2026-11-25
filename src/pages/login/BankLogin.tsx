@@ -33,7 +33,7 @@ export function BankLogin({ onCorp }: { onCorp: () => void }) {
       const res = await loginBank(employeeNo.trim(), password);
       const home = BANK_HOME[res.user.role];
       if (!home) {
-        // 여신 담당 화면은 아직 없습니다.
+        // 화면이 아직 없는 역할입니다.
         setError(`${res.user.roleLabel} 화면은 아직 준비 중입니다.`);
         return;
       }
