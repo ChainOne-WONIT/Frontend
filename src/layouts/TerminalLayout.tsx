@@ -82,8 +82,8 @@ const TREE: {
   group?: boolean;
   match?: RegExp;
 }[] = [
+  { label: '대시보드', depth: 0, to: '/bank/review', end: true },
   { label: '심사 업무', depth: 0, group: true },
-  { label: '대시보드', depth: 1, to: '/bank/review', end: true },
   { label: '한도 신청 심사', depth: 1, to: '/bank/review/applications', end: true },
   { label: '심사 상세 (조회 사유)', depth: 2, match: /^\/bank\/review\/applications\/.+/ },
   { label: '신보 승인 결과 입력', depth: 2, match: /^\/bank\/review\/applications\/.+/ },
@@ -166,6 +166,15 @@ export function TerminalLayout() {
     [pathname, since, user?.employeeNo],
   );
   const [panel, setPanel] = useState<'msgs' | 'mine'>('msgs');
+  // 처리 기록·알림: 그 탭이 열려 있을 때 한 번 더 누르면 오른쪽 패널을 닫습니다.
+  const togglePanel = (p: 'msgs' | 'mine') => {
+    if (msgsOpen && panel === p) {
+      setMsgsOpen(false);
+      return;
+    }
+    setPanel(p);
+    setMsgsOpen(true);
+  };
   // 처리(확정·저장 등)를 하면 처리 기록과 알림을 바로 새로 불러옵니다.
   const reloadActivity = activity.reload;
   const reloadMsgs = msgs.reload;
@@ -230,20 +239,14 @@ export function TerminalLayout() {
           <button
             type="button"
             className={msgsOpen && panel === 'mine' ? 'is-on' : undefined}
-            onClick={() => {
-              setPanel('mine');
-              setMsgsOpen(true);
-            }}
+            onClick={() => togglePanel('mine')}
           >
             처리 기록 <b className="tm-badge tm-badge--blue">{activity.data?.items.length ?? 0}</b>
           </button>
           <button
             type="button"
             className={msgsOpen && panel === 'msgs' ? 'is-on' : undefined}
-            onClick={() => {
-              setPanel('msgs');
-              setMsgsOpen(true);
-            }}
+            onClick={() => togglePanel('msgs')}
           >
             알림 <b className="tm-badge">{msgs.data?.messages.length ?? 0}</b>
           </button>
@@ -297,8 +300,12 @@ export function TerminalLayout() {
           {TREE.map((t) =>
             t.to ? (
               <li key={t.label} style={{ paddingLeft: 6 + t.depth * 14 }}>
-                <NavLink to={t.to} end={t.end} className="tm-tree__link">
-                  · {t.label}
+                <NavLink
+                  to={t.to}
+                  end={t.end}
+                  className={`tm-tree__link${t.depth === 0 ? ' tm-tree__link--top' : ''}`}
+                >
+                  {t.depth === 0 ? '■' : '·'} {t.label}
                 </NavLink>
               </li>
             ) : (

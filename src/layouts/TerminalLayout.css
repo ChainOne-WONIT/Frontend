@@ -465,3 +465,10 @@
 .tm-badge--blue {
   background: #3b82c4;
 }
+
+/* 메뉴 트리 맨 위 대시보드: 묶음 제목과 같은 높이에서 바로 누를 수 있게 */
+.tm-tree__link--top {
+  margin-bottom: 2px;
+  color: var(--tm-navy);
+  font-weight: 700;
+}
