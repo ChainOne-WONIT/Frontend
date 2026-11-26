@@ -17,6 +17,7 @@ import {
 } from '../../../components/terminal';
 import { downloadCsv } from '../../../lib/csv';
 import { flowLabel, STATUS_TONE, won } from '../../../lib/format';
+import { useAuth } from '../../../lib/auth-context';
 import { useAsync } from '../../../lib/useAsync';
 import './terminal-chain.css';
 
@@ -36,6 +37,22 @@ const orderTone = (s: Parameters<typeof flowLabel>[0]): TTone => {
 /** [R0400] 발주 체인 조회 (단말형): 기업을 검색하면 그 기업이 들어 있는 체인을 모두 보여 줍니다. */
 export function TerminalChainPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  // 심사(R0400)와 여신(L0500)이 같이 쓰는 화면입니다. 아래 기능키만 역할에 맞게 바뀝니다.
+  const isLoan = user?.type === 'bank' && user.role === 'loan';
+  const keys = isLoan
+    ? {
+        code: 'L0500',
+        num: '5100',
+        f5: ['리스크 경보', '/bank/loan/alerts'],
+        f4: ['생산자금 대출', '/bank/loan/loans'],
+      }
+    : {
+        code: 'R0400',
+        num: '4100',
+        f5: ['기업 심사 정보', '/bank/review/companies'],
+        f4: ['한도 신청 심사', '/bank/review/applications'],
+      };
   const listId = useId();
   const [tierDraft, setTierDraft] = useState<'' | Tier>('');
   const [nameDraft, setNameDraft] = useState('');
@@ -66,7 +83,7 @@ export function TerminalChainPage() {
 
   return (
     <>
-      <TTitle code="R0400" num="4100" title="발주 체인 조회" asOf={data?.asOf} />
+      <TTitle code={keys.code} num={keys.num} title="발주 체인 조회" asOf={data?.asOf} />
       <TCond onSearch={search} onReset={reset}>
         <TField label="구분">
           <select
@@ -240,16 +257,8 @@ export function TerminalChainPage() {
 
           <TFKeys
             keys={[
-              {
-                label: '기업 심사 정보',
-                fkey: 'F5',
-                onClick: () => navigate('/bank/review/companies'),
-              },
-              {
-                label: '한도 신청 심사',
-                fkey: 'F4',
-                onClick: () => navigate('/bank/review/applications'),
-              },
+              { label: keys.f5[0], fkey: 'F5', onClick: () => navigate(keys.f5[1]) },
+              { label: keys.f4[0], fkey: 'F4', onClick: () => navigate(keys.f4[1]) },
               {
                 label: '엑셀 저장',
                 fkey: 'F9',

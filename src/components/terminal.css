@@ -388,3 +388,32 @@ input.tf::placeholder {
   align-items: center;
   gap: 4px;
 }
+
+/* 흐린 행 (취소된 이벤트 등) */
+.tt-table tbody tr.tt-dim td {
+  color: #9aa8b8;
+}
+
+/* 표 안의 이름 링크 (누르면 상세) */
+.tt-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1f6fb8;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* 설정값: 바뀐 칸 */
+.tf--changed {
+  border-color: #1f6fb8;
+  box-shadow: 0 0 0 1px #1f6fb8;
+  color: #1f6fb8;
+  font-weight: 700;
+}
+/* 구역 묶음 */
+.tt-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

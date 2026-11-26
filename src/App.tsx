@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import type { BankRole } from './api/types';
 import { Navigate, Route, Routes } from 'react-router';
-import { BankLayout } from './layouts/BankLayout';
 import { CorpLayout } from './layouts/CorpLayout';
 import { TerminalLayout } from './layouts/TerminalLayout';
 import { useAuth } from './lib/auth-context';
@@ -23,7 +22,6 @@ import { OpsDashboardPage } from './pages/bank/ops/OpsDashboardPage';
 import { SettingsPage } from './pages/bank/ops/SettingsPage';
 import { SignupDetailPage } from './pages/bank/ops/SignupDetailPage';
 import { SignupApprovalsPage } from './pages/bank/ops/SignupApprovalsPage';
-import { ChainPage } from './pages/bank/review/ChainPage';
 import { TerminalChainPage } from './pages/bank/review/TerminalChainPage';
 import { CompanyReviewPage } from './pages/bank/review/CompanyReviewPage';
 import { ReviewApplicationsPage } from './pages/bank/review/ReviewApplicationsPage';
@@ -86,7 +84,7 @@ export default function App() {
         path="/bank/loan"
         element={
           <RequireBank role="loan">
-            <BankLayout />
+            <TerminalLayout />
           </RequireBank>
         }
       >
@@ -96,13 +94,13 @@ export default function App() {
         <Route path="alerts" element={<RiskAlertsPage />} />
         <Route path="alerts/:id" element={<AlertDetailPage />} />
         <Route path="events" element={<EventsPage />} />
-        <Route path="chain" element={<ChainPage />} />
+        <Route path="chain" element={<TerminalChainPage />} />
       </Route>
       <Route
         path="/bank/ops"
         element={
           <RequireBank role="ops">
-            <BankLayout />
+            <TerminalLayout />
           </RequireBank>
         }
       >
