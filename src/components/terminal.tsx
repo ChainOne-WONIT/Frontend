@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router';
+import { useScreenActive } from '../lib/screen-active';
 import { useFKeys, type FKey } from '../lib/useFKeys';
 import './terminal.css';
 
@@ -203,15 +204,19 @@ export function TWindow({
   const titleId = useId();
   const boxRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef(onClose);
+  // 뒤에 숨은 탭의 팝업은 열린 상태만 기억하고 그리지 않습니다. 그 탭으로 돌아오면 다시 보입니다.
+  const active = useScreenActive();
   useEffect(() => {
     closeRef.current = onClose;
   }, [onClose]);
   useEffect(() => {
+    if (!active) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeRef.current();
     window.addEventListener('keydown', onKey);
     (boxRef.current?.querySelector<HTMLElement>('select, input') ?? boxRef.current)?.focus();
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [active]);
+  if (!active) return null;
   return createPortal(
     <div className="tt-overlay">
       <div

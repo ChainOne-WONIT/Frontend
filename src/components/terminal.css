@@ -4,6 +4,16 @@
   flex-direction: column;
   gap: 8px;
 }
+/* 탭 하나의 화면. 다른 탭으로 가면 숨겨 두고 그대로 살려 둡니다. */
+.tm-screen__pane {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  gap: 8px;
+}
+.tm-screen__pane[hidden] {
+  display: none;
+}
 .tt-spacer {
   flex: 1;
 }

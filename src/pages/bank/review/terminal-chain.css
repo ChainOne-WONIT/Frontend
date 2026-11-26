@@ -8,6 +8,7 @@
 }
 .tc-row {
   display: flex;
+  flex-wrap: wrap;
   border-bottom: 1px solid #d5dee8;
 }
 .tc-row:last-child {
@@ -67,7 +68,63 @@
   border: 1.5px solid;
   border-left-width: 5px;
   background: #fff;
+  font: inherit;
   font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+.tc-node:hover {
+  filter: brightness(0.97);
+}
+.tc-node:focus-visible {
+  outline: 2px solid #1f6fb8;
+  outline-offset: 2px;
+}
+/* 눌러서 펼친 상자 */
+.tc-node.is-picked {
+  outline: 2px dashed #13345a;
+  outline-offset: 2px;
+}
+
+/* 상자를 눌렀을 때 아래에 펼치는 앞뒤 발주·대출 */
+.tc-detail {
+  flex: 1 0 100%;
+  padding: 8px 14px 12px;
+  border-top: 1px dashed #b8c6d6;
+  background: #fff;
+}
+.tc-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #13345a;
+}
+.tc-sides {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 10px;
+}
+.tc-side-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px;
+  background: #dde7f2;
+  font-size: 11px;
+  color: #13345a;
+}
+.tc-side .tt-table th,
+.tc-side .tt-table td.c {
+  white-space: nowrap;
+}
+/* 발주가 없을 때 안내 줄: 다른 줄과 같은 높이로 한 줄만 */
+.tc-side .tt-empty td {
+  padding: 4px 6px;
+}
+.tc-side-head span {
+  color: #5d7189;
 }
 .tc-node b {
   color: #13345a;

@@ -67,11 +67,11 @@ export function updateCompanyReview(
   });
 }
 
-/** 발주 체인 조회 — GET /api/bank/chains?company=&tier= */
+/** 발주 체인 조회 — GET /api/bank/chains?company=&company=&tier= (기업은 여러 개 가능) */
 export function getChains(q: ChainQuery = {}): Promise<ChainView> {
   if (USE_MOCK) return mock.mockChains(q);
   const params = new URLSearchParams();
-  if (q.company) params.set('company', q.company);
+  q.companies?.forEach((c) => params.append('company', c));
   if (q.tier) params.set('tier', q.tier);
   const qs = params.toString();
   return request('GET', `/api/bank/chains${qs ? `?${qs}` : ''}`);

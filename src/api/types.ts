@@ -474,8 +474,11 @@ export interface Chain {
 }
 
 export interface ChainQuery {
-  /** 검색한 기업. 없으면 모든 체인 */
-  company?: string;
+  /**
+   * 검색한 기업. 없으면 모든 체인.
+   * 둘 이상이면 그 기업들끼리 주고받은 발주(방향 상관없이)가 있는 체인만 돌려줍니다.
+   */
+  companies?: string[];
   /** 검색한 기업이 이 구분으로 들어 있는 체인만 */
   tier?: Exclude<ChainTier, '시작 기업'>;
 }

@@ -1,7 +1,7 @@
-import { Fragment, useId, useState } from 'react';
+import { Fragment, useId, useState, type ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { getChains } from '../../../api/bank';
-import type { AlertStage, ChainQuery } from '../../../api/types';
+import type { AlertStage, Chain, ChainQuery } from '../../../api/types';
 import {
   TCond,
   TError,
@@ -33,6 +33,105 @@ const orderTone = (s: Parameters<typeof flowLabel>[0]): TTone => {
   const t = STATUS_TONE[s];
   return t === 'default' ? 'blue' : t === 'teal' ? 'ok' : (t as TTone);
 };
+/** "(A(주), B(주))" · "A(주), B(주)" → ['A(주)', 'B(주)']. 이름 안의 (주)는 그대로 둡니다. */
+const parseNames = (s: string) => {
+  let t = s.trim();
+  if (t.startsWith('(') && t.endsWith(')') && t.includes(',')) t = t.slice(1, -1);
+  return [
+    ...new Set(
+      t
+        .split(/[,，]/)
+        .map((x) => x.trim())
+        .filter(Boolean),
+    ),
+  ];
+};
+
+type ChainItem = Chain;
+type ChainRow = Chain['rows'][number];
+
+/**
+ * 발주 체인에서 네모 상자를 눌렀을 때 아래에 펼치는 정보.
+ * 앞쪽(그 기업이 받은 발주)과 뒤쪽(그 기업이 낸 발주)을 나란히 보여 줍니다.
+ * 중간 기업(예: 1차)이면 양쪽이 모두 채워지고, 시작 기업·끝 기업이면 한쪽만 채워집니다.
+ */
+function NodeDetail({
+  chain,
+  node,
+  name,
+  onClose,
+}: {
+  chain: ChainItem;
+  node: ChainItem['nodes'][number];
+  name: (n: string) => ReactNode;
+  onClose: () => void;
+}) {
+  const received = chain.rows.filter((r) => r.to === node.name);
+  const sent = chain.rows.filter((r) => r.from === node.name);
+  const sum = (rs: ChainRow[]) => rs.reduce((s, r) => s + r.amount, 0);
+  const loanSum = (rs: ChainRow[]) => rs.reduce((s, r) => s + (r.loan?.amount ?? 0), 0);
+  const side = (title: string, rs: ChainRow[], other: 'from' | 'to', empty: string) => (
+    <div className="tc-side">
+      <div className="tc-side-head">
+        <b>{title}</b>
+        {rs.length > 0 && (
+          <span>
+            {rs.length}건 · 발주 {won(sum(rs))} · 대출 {won(loanSum(rs))}
+          </span>
+        )}
+      </div>
+      <table className="tt-table">
+        <thead>
+          <tr>
+            <th>발주</th>
+            <th>{other === 'from' ? '내는 기업' : '받는 기업'}</th>
+            <th>발주금액</th>
+            <th>발주 상태</th>
+            <th>연결 대출</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rs.length === 0 && (
+            <tr className="tt-empty">
+              <td colSpan={5}>{empty}</td>
+            </tr>
+          )}
+          {rs.map((r) => (
+            <tr key={r.orderId}>
+              <td className="c">
+                <b>{r.orderId}</b>
+              </td>
+              <td>{name(r[other])}</td>
+              <td className="r">{won(r.amount)}</td>
+              <td className="c">
+                <TTag tone={orderTone(r.status)}>{flowLabel(r.status)}</TTag>
+              </td>
+              <td className={r.loan?.statusLabel === '연체' ? 'tt-c--bad' : undefined}>
+                {r.loan ? `${r.loan.id} · ${won(r.loan.amount)} · ${r.loan.statusLabel}` : '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+  return (
+    <div className="tc-detail" role="region" aria-label={`${node.name} 앞뒤 발주와 대출`}>
+      <div className="tc-detail-head">
+        <span>
+          <b>{node.name}</b> · {chain.id} 안에서 {node.tier} · 경보 {node.stage}
+        </span>
+        <button type="button" className="tb" onClick={onClose}>
+          닫기
+        </button>
+      </div>
+      <div className="tc-sides">
+        {side('받은 발주 (앞 기업에서)', received, 'from', '시작 기업이라 받은 발주가 없습니다.')}
+        {side('낸 발주 (뒤 기업으로)', sent, 'to', '체인의 끝 기업이라 낸 발주가 없습니다.')}
+      </div>
+    </div>
+  );
+}
 
 /** 체인 화면 종류: 발주 체인 그림만 / 체인 안의 발주와 대출 표만 / 둘 다 */
 export type ChainPageView = 'chains' | 'loans' | 'both';
@@ -81,21 +180,35 @@ export function TerminalChainPage({ view = 'both' }: { view?: ChainPageView }) {
   const listId = useId();
   const [params, setParams] = useSearchParams();
   const tierParam = params.get('tier');
+  const focusNames = params.getAll('company').flatMap(parseNames);
+  const companyKey = focusNames.join('\n');
   const query: ChainQuery = {
-    company: params.get('company') || undefined,
+    companies: focusNames.length ? focusNames : undefined,
     tier: tierParam === '1차' || tierParam === '2차' || tierParam === '3차' ? tierParam : undefined,
   };
   const [tierDraft, setTierDraft] = useState<'' | Tier>(query.tier ?? '');
-  const [nameDraft, setNameDraft] = useState(query.company ?? '');
+  const [nameDraft, setNameDraft] = useState(focusNames.join(', '));
+  /** 발주 체인에서 누른 네모 상자 (체인 번호 + 기업 이름). 다시 누르면 닫힙니다. */
+  const [picked, setPicked] = useState<{ chainId: string; name: string } | null>(null);
+  const pick = (chainId: string, name: string) =>
+    setPicked((p) => (p?.chainId === chainId && p.name === name ? null : { chainId, name }));
+  // 탭은 화면을 살려 두므로, 짝 화면 버튼처럼 다른 검색 조건을 들고 들어오면 입력 칸도 맞춥니다.
+  const urlKey = `${companyKey}|${query.tier ?? ''}`;
+  const [seenKey, setSeenKey] = useState(urlKey);
+  if (urlKey !== seenKey) {
+    setSeenKey(urlKey);
+    setNameDraft(focusNames.join(', '));
+    setTierDraft(query.tier ?? '');
+    setPicked(null);
+  }
   const { data, error, loading, reload } = useAsync(
     () => getChains(query),
-    [query.company, query.tier],
+    [companyKey, query.tier],
   );
 
   const search = () => {
     const next = new URLSearchParams();
-    const name = nameDraft.trim();
-    if (name) next.set('company', name);
+    parseNames(nameDraft).forEach((n) => next.append('company', n));
     if (tierDraft) next.set('tier', tierDraft);
     setParams(next, { replace: true });
     reload();
@@ -111,14 +224,19 @@ export function TerminalChainPage({ view = 'both' }: { view?: ChainPageView }) {
   const orderTotal = chains.reduce((s, c) => s + c.orderTotal, 0);
   const loanBalance = chains.reduce((s, c) => s + c.loanBalance, 0);
   const rows = chains.flatMap((c) => c.rows.map((r) => ({ ...r, chainId: c.id })));
-  const focus = query.company;
+  const focusSet = new Set(focusNames);
+  const focus = focusNames.length ? focusNames.join(', ') : undefined;
+  /** 둘 이상 검색: 그 기업들끼리 주고받은 발주만 (A → B, B → A 모두) */
+  const isPair = focusNames.length > 1;
+  const isFocus = (n: string) => focusSet.has(n);
   const uniq = [...new Map(rows.map((r) => [r.orderId, r])).values()];
-  const involves = (r: (typeof uniq)[number]) => r.from === focus || r.to === focus;
+  const involves = (r: (typeof uniq)[number]) =>
+    isPair ? isFocus(r.from) && isFocus(r.to) : isFocus(r.from) || isFocus(r.to);
   // 체인 대출 현황(심사)은 검색한 기업이 낸·받은 발주만 보여 줍니다. 한 화면(여신)은 전체를 두고 색으로 표시합니다.
   const onlyMine = view === 'loans' && !!focus;
   /** 검색한 기업 이름은 눈에 띄게 표시합니다 */
   const name = (n: string) =>
-    n === focus ? (
+    isFocus(n) ? (
       <mark className="tc-hit" aria-label={`${n} (검색한 기업)`}>
         {n}
       </mark>
@@ -126,7 +244,8 @@ export function TerminalChainPage({ view = 'both' }: { view?: ChainPageView }) {
       n
     );
   const shown = onlyMine ? uniq.filter(involves) : uniq;
-  const unknown = !!focus && !!data && !data.companies.includes(focus);
+  const missing = data ? focusNames.filter((n) => !data.companies.includes(n)) : [];
+  const unknown = missing.length > 0;
 
   return (
     <>
@@ -160,11 +279,11 @@ export function TerminalChainPage({ view = 'both' }: { view?: ChainPageView }) {
           <input
             className="tf tf--req"
             list={listId}
-            placeholder="기업 이름 검색"
-            aria-label="기업 이름 검색"
+            placeholder="기업 이름 (여럿은 쉼표로)"
+            aria-label="기업 이름 검색, 여러 기업은 쉼표로 구분"
             value={nameDraft}
             onChange={(e) => setNameDraft(e.target.value)}
-            style={{ width: 200 }}
+            style={{ width: 260 }}
           />
           <datalist id={listId}>
             {data?.companies.map((c) => (
@@ -173,9 +292,11 @@ export function TerminalChainPage({ view = 'both' }: { view?: ChainPageView }) {
           </datalist>
         </TField>
         <span className="tt-muted">
-          {tierDraft
-            ? `※ 검색한 기업이 ${tierDraft}로 들어 있는 체인만`
-            : '※ 검색한 기업이 들어 있는 체인 모두'}
+          {parseNames(nameDraft).length > 1
+            ? '※ 검색한 기업끼리 주고받은 발주 (양쪽 방향 모두)'
+            : tierDraft
+              ? `※ 검색한 기업이 ${tierDraft}로 들어 있는 체인만`
+              : '※ 검색한 기업이 들어 있는 체인 모두'}
         </span>
       </TCond>
       <TWarn>
@@ -223,48 +344,68 @@ export function TerminalChainPage({ view = 'both' }: { view?: ChainPageView }) {
               />
               <div className={`tc-grid${loading ? ' is-loading' : ''}`}>
                 {unknown ? (
-                  <p className="tt-state">{focus} 기업을 찾을 수 없습니다. 목록에서 골라 주세요.</p>
+                  <p className="tt-state">
+                    {missing.join(', ')} 기업을 찾을 수 없습니다. 목록에서 골라 주세요.
+                  </p>
                 ) : chains.length === 0 ? (
                   <p className="tt-state">
-                    {focus} 기업이 {query.tier}로 들어 있는 체인이 없습니다.
+                    {isPair
+                      ? `${focus} 기업끼리 주고받은 발주가 있는 체인이 없습니다.`
+                      : `${focus} 기업이 ${query.tier}로 들어 있는 체인이 없습니다.`}
                   </p>
                 ) : (
-                  chains.map((c) => (
-                    <div key={c.id} className="tc-row">
-                      <div className="tc-label">
-                        <b>{c.id}</b>
-                        <span>{c.rootName} 시작</span>
-                        <small>
-                          발주 {eok(c.orderTotal)} · 대출 {eok(c.loanBalance)}
-                        </small>
+                  chains.map((c) => {
+                    const sel = picked?.chainId === c.id ? picked.name : null;
+                    const selNode = sel ? c.nodes.find((n) => n.name === sel) : undefined;
+                    return (
+                      <div key={c.id} className="tc-row">
+                        <div className="tc-label">
+                          <b>{c.id}</b>
+                          <span>{c.rootName} 시작</span>
+                          <small>
+                            발주 {eok(c.orderTotal)} · 대출 {eok(c.loanBalance)}
+                          </small>
+                        </div>
+                        <div className="tc-flow">
+                          {c.nodes.map((n, i) => {
+                            const hit = isFocus(n.name);
+                            return (
+                              <Fragment key={n.name}>
+                                {i > 0 && (
+                                  <span className="tc-link">
+                                    <b>{c.links[i - 1]?.orderId}</b>
+                                    <span aria-hidden="true">────▶</span>
+                                  </span>
+                                )}
+                                <button
+                                  type="button"
+                                  className={`tc-node tc-node--${STAGE_CLASS[n.stage]}${hit ? ' is-focus' : ''}${sel === n.name ? ' is-picked' : ''}`}
+                                  aria-current={hit || undefined}
+                                  aria-expanded={sel === n.name}
+                                  title="눌러서 앞뒤 발주와 대출 보기"
+                                  onClick={() => pick(c.id, n.name)}
+                                >
+                                  <b>{n.name}</b>
+                                  <small>
+                                    {n.tier === '시작 기업' ? '시작' : n.tier} · {n.stage}
+                                    {hit && ' · 검색 기업'}
+                                  </small>
+                                </button>
+                              </Fragment>
+                            );
+                          })}
+                        </div>
+                        {selNode && (
+                          <NodeDetail
+                            chain={c}
+                            node={selNode}
+                            name={name}
+                            onClose={() => setPicked(null)}
+                          />
+                        )}
                       </div>
-                      <div className="tc-flow">
-                        {c.nodes.map((n, i) => {
-                          const isFocus = n.name === focus;
-                          return (
-                            <Fragment key={n.name}>
-                              {i > 0 && (
-                                <span className="tc-link">
-                                  <b>{c.links[i - 1]?.orderId}</b>
-                                  <span aria-hidden="true">────▶</span>
-                                </span>
-                              )}
-                              <span
-                                className={`tc-node tc-node--${STAGE_CLASS[n.stage]}${isFocus ? ' is-focus' : ''}`}
-                                aria-current={isFocus || undefined}
-                              >
-                                <b>{n.name}</b>
-                                <small>
-                                  {n.tier === '시작 기업' ? '시작' : n.tier} · {n.stage}
-                                  {isFocus && ' · 검색 기업'}
-                                </small>
-                              </span>
-                            </Fragment>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </>
@@ -276,9 +417,13 @@ export function TerminalChainPage({ view = 'both' }: { view?: ChainPageView }) {
                 title="체인 안의 발주와 대출"
                 right={
                   onlyMine
-                    ? `${focus}이(가) 낸·받은 발주 ${shown.length}건`
+                    ? isPair
+                      ? `${focus} 기업끼리 주고받은 발주 ${shown.length}건 (양쪽 방향)`
+                      : `${focus}이(가) 낸·받은 발주 ${shown.length}건`
                     : focus
-                      ? '검색한 기업이 낸·받은 발주는 노란색'
+                      ? isPair
+                        ? '검색한 기업끼리 주고받은 발주는 노란색'
+                        : '검색한 기업이 낸·받은 발주는 노란색'
                       : `${shown.length}건`
                 }
               />
@@ -310,10 +455,10 @@ export function TerminalChainPage({ view = 'both' }: { view?: ChainPageView }) {
                       <td className="c">{r.chainId}</td>
                       <td>
                         {name(r.from)} <span className="tc-arrow">→</span> {name(r.to)}
-                        {focus && involves(r) && (
+                        {focus && !isPair && involves(r) && (
                           <span className="tc-dir">
-                            <TTag tone={r.from === focus ? 'violet' : 'blue'}>
-                              {r.from === focus ? '낸 발주' : '받은 발주'}
+                            <TTag tone={isFocus(r.from) ? 'violet' : 'blue'}>
+                              {isFocus(r.from) ? '낸 발주' : '받은 발주'}
                             </TTag>
                           </span>
                         )}

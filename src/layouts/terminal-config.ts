@@ -88,11 +88,11 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
     ],
     tree: [
       { label: '대시보드', depth: 0, to: '/bank/review', end: true },
-      { label: '심사 업무', depth: 0, group: true },
+      { label: '심사', depth: 0, group: true },
       { label: '한도 신청 심사', depth: 1, to: '/bank/review/applications', end: true },
       { label: '심사 상세 (조회 사유)', depth: 2, match: /^\/bank\/review\/applications\/.+/ },
       { label: '신보 승인 결과 입력', depth: 2, match: /^\/bank\/review\/applications\/.+/ },
-      { label: '기업 정보', depth: 0, group: true },
+      { label: '기업', depth: 0, group: true },
       { label: '기업 심사 정보', depth: 1, to: '/bank/review/companies' },
       { label: '수정 이력 조회', depth: 2, match: /^\/bank\/review\/companies/ },
       { label: '체인', depth: 0, group: true },

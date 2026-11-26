@@ -1,5 +1,14 @@
-import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  Link,
+  NavLink,
+  UNSAFE_LocationContext as LocationContext,
+  useLocation,
+  useNavigate,
+  useNavigationType,
+  useOutlet,
+} from 'react-router';
+import { ScreenActiveContext } from '../lib/screen-active';
 import { getBankMessages, getMyActivity } from '../api/bank';
 import { Icon } from '../components/Icon';
 import { TWindow } from '../components/terminal';
@@ -10,7 +19,14 @@ import { DATA_CHANGED, useAsync } from '../lib/useAsync';
 import { TERMINAL_ROLES, type TerminalScreen } from './terminal-config';
 import './TerminalLayout.css';
 
+/** path는 검색 조건까지 담은 주소 (/bank/review/chain?company=…) */
 type Tab = { code: string; title: string; path: string };
+type LocationValue = {
+  location: ReturnType<typeof useLocation>;
+  navigationType: ReturnType<typeof useNavigationType>;
+};
+/** 뒤에 숨긴 탭: 마지막으로 보던 화면과 그때의 주소 */
+type Kept = { el: ReactNode; loc: LocationValue };
 
 type ToolAct = 'search' | 'print' | 'memo' | 'calc';
 const TOOLS: { label: string; act: ToolAct; hint: string }[] = [
@@ -50,30 +66,48 @@ export function TerminalLayout() {
   const { user: authUser, loginAt, signOut } = useAuth();
   const user = authUser?.type === 'bank' ? authUser : null;
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const navigationType = useNavigationType();
+  const { pathname } = location;
+  const outlet = useOutlet();
   const conf = TERMINAL_ROLES[user?.role ?? 'review'];
   const current = screenOf(conf.screens, pathname);
 
   // 열어 둔 화면 탭: 화면에 들어가면 탭이 생기고, ×로 닫습니다.
+  // 다른 탭으로 가도 화면을 지우지 않고 숨겨 둡니다. 돌아오면 검색 조건·펼친 상자·입력 중인 내용이 그대로입니다.
   const [tabs, setTabs] = useState<Tab[]>([]);
-  const [seenPath, setSeenPath] = useState<string | null>(null);
+  const [kept, setKept] = useState<Record<string, Kept>>({});
+  const [seenLoc, setSeenLoc] = useState<typeof location | null>(null);
+  const liveLoc = useMemo(() => ({ location, navigationType }), [location, navigationType]);
   // 주소가 바뀐 때에만 렌더 중에 탭 목록을 맞춥니다 (effect 안에서 상태를 바꾸지 않음).
   // 탭을 닫는 순간에는 주소가 아직 그대로라서, 닫은 탭이 다시 생기지 않습니다.
-  if (pathname !== seenPath) {
-    setSeenPath(pathname);
+  if (location !== seenLoc) {
+    setSeenLoc(location);
+    const path = pathname + location.search;
     setTabs((prev) =>
       prev.some((t) => t.code === current.code)
-        ? prev.map((t) => (t.code === current.code ? { ...t, path: pathname } : t))
-        : [...prev, { code: current.code, title: current.title, path: pathname }],
+        ? prev.map((t) => (t.code === current.code ? { ...t, path } : t))
+        : [...prev, { code: current.code, title: current.title, path }],
     );
+    setKept((prev) => ({ ...prev, [current.code]: { el: outlet, loc: liveLoc } }));
   }
 
   const closeTab = (code: string) => {
     const rest = tabs.filter((t) => t.code !== code);
     if (rest.length === 0) return; // 마지막 화면은 닫지 않습니다
     setTabs(rest);
+    setKept((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => k !== code)));
     if (code === current.code) navigate(rest.at(-1)?.path ?? conf.home);
   };
+  /** 메뉴로 이미 열린 화면에 가면, 그 탭이 보던 주소(검색 조건 포함)로 돌아갑니다. */
+  const tabPath = (to: string) => tabs.find((t) => t.path.split('?')[0] === to)?.path ?? to;
+
+  // 탭마다 스크롤 위치를 기억했다가 돌아오면 되돌립니다.
+  const screenRef = useRef<HTMLElement>(null);
+  const scrolls = useRef<Record<string, number>>({});
+  useLayoutEffect(() => {
+    if (screenRef.current) screenRef.current.scrollTop = scrolls.current[current.code] ?? 0;
+  }, [current.code]);
 
   const [now, setNow] = useState(clock);
   useEffect(() => {
@@ -181,7 +215,13 @@ export function TerminalLayout() {
 
       <nav className="tm-rail" aria-label="바로가기">
         {conf.rail.map((r) => (
-          <NavLink key={r.to} to={r.to} end={r.end} className="tm-rail__item" title={r.hint}>
+          <NavLink
+            key={r.to}
+            to={tabPath(r.to)}
+            end={r.end}
+            className="tm-rail__item"
+            title={r.hint}
+          >
             <Icon name={r.icon} size={16} />
             {r.label}
           </NavLink>
@@ -224,7 +264,7 @@ export function TerminalLayout() {
             t.to ? (
               <li key={t.label} style={{ paddingLeft: 6 + t.depth * 14 }}>
                 <NavLink
-                  to={t.to}
+                  to={tabPath(t.to)}
                   end={t.end}
                   className={`tm-tree__link${t.depth === 0 ? ' tm-tree__link--top' : ''}`}
                 >
@@ -265,8 +305,27 @@ export function TerminalLayout() {
             </span>
           ))}
         </div>
-        <section className="tm-screen">
-          <Outlet />
+        <section
+          ref={screenRef}
+          className="tm-screen"
+          onScroll={(e) => {
+            scrolls.current[current.code] = e.currentTarget.scrollTop;
+          }}
+        >
+          {tabs.map((t) => {
+            const on = t.code === current.code;
+            const el = on ? outlet : kept[t.code]?.el;
+            const loc = on ? liveLoc : kept[t.code]?.loc;
+            if (!el || !loc) return null;
+            // 숨은 탭은 떠날 때의 주소를 그대로 보게 해서, 검색 조건이 지금 주소로 바뀌지 않게 합니다.
+            return (
+              <div key={t.code} className="tm-screen__pane" hidden={!on}>
+                <ScreenActiveContext.Provider value={on}>
+                  <LocationContext.Provider value={loc}>{el}</LocationContext.Provider>
+                </ScreenActiveContext.Provider>
+              </div>
+            );
+          })}
         </section>
       </main>
 

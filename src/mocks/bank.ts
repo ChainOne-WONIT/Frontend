@@ -683,16 +683,33 @@ const chains: Chain[] = [
       ['PO-3110', 70_000_000, 'PENDING'],
     ],
   ),
+  // 대광금속이 금형·지그를 한성모터스 공구사업부에 맡긴 역방향 발주
+  chain(
+    'CH-8',
+    [
+      ['대광금속(주)', '정상'],
+      [HS, '정상'],
+    ],
+    [['PO-3204', 120_000_000, 'ACCEPTED', ['LN-29', 60_000_000, '실행']]],
+  ),
 ];
 
-/** 체인 조회: 기업을 검색하면 그 기업이 들어 있는 체인을 모두, 구분을 고르면 그 구분으로 들어 있는 체인만 */
+/**
+ * 체인 조회: 기업을 검색하면 그 기업이 들어 있는 체인을 모두, 구분을 고르면 그 구분으로 들어 있는 체인만.
+ * 기업을 둘 이상 검색하면 그 기업들끼리 주고받은 발주가 있는 체인만 (A → B, B → A 모두).
+ */
 export function mockChains(q: ChainQuery = {}): Promise<ChainView> {
-  const company = q.company?.trim();
-  const list = company
-    ? chains.filter((c) =>
-        c.nodes.some((n) => n.name === company && (!q.tier || n.tier === q.tier)),
-      )
-    : chains;
+  const names = new Set((q.companies ?? []).map((c) => c.trim()).filter(Boolean));
+  const inTier = (c: Chain) =>
+    c.nodes.some((n) => names.has(n.name) && (!q.tier || n.tier === q.tier));
+  const list =
+    names.size === 0
+      ? chains
+      : names.size === 1
+        ? chains.filter(inTier)
+        : chains.filter(
+            (c) => inTier(c) && c.rows.some((r) => names.has(r.from) && names.has(r.to)),
+          );
   const companies = [...new Set(chains.flatMap((c) => c.nodes.map((n) => n.name)))].sort((a, b) =>
     a.localeCompare(b, 'ko'),
   );

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useScreenActive } from './screen-active';
 
 export type FKey = 'F2' | 'F3' | 'F4' | 'F5' | 'F6' | 'F7' | 'F8' | 'F9';
 
@@ -7,12 +8,17 @@ export type FKey = 'F2' | 'F3' | 'F4' | 'F5' | 'F6' | 'F7' | 'F8' | 'F9';
  * 입력 칸에서 글자를 치는 중에도 기능키는 동작합니다. 브라우저 기본 동작(F5 새로고침 등)은 막습니다.
  */
 export function useFKeys(map: Partial<Record<FKey, (() => void) | undefined>>) {
+  const active = useScreenActive();
   const ref = useRef(map);
+  const activeRef = useRef(active);
   useEffect(() => {
     ref.current = map;
+    activeRef.current = active;
   });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // 뒤에 숨어 있는 탭의 화면은 기능키에 반응하지 않습니다.
+      if (!activeRef.current) return;
       const fn = ref.current[e.key as FKey];
       if (!fn) return;
       e.preventDefault();
