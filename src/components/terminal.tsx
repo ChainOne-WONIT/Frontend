@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router';
+import { useFavorites } from '../lib/favorites';
 import { useScreenActive } from '../lib/screen-active';
 import { useFKeys, type FKey } from '../lib/useFKeys';
 import './terminal.css';
@@ -22,11 +23,26 @@ export function TTitle({
   right?: ReactNode;
   asOf?: string;
 }) {
+  const fav = useFavorites();
+  const on = !!fav?.isFav(code);
   return (
     <div className="tt-title">
-      <span className="tt-title__star" aria-hidden="true">
-        ★
-      </span>
+      {fav ? (
+        <button
+          type="button"
+          className={`tt-title__star${on ? ' is-on' : ''}`}
+          aria-pressed={on}
+          aria-label={on ? '나의메뉴에서 빼기' : '나의메뉴에 넣기'}
+          title={on ? '나의메뉴에서 빼기' : '나의메뉴에 넣기'}
+          onClick={() => fav.toggle(code)}
+        >
+          {on ? '★' : '☆'}
+        </button>
+      ) : (
+        <span className="tt-title__star is-on" aria-hidden="true">
+          ★
+        </span>
+      )}
       <b className="tt-title__code">[{code}]</b>
       <h1>
         ({num}) {title}
@@ -195,11 +211,14 @@ export function TWindow({
   onClose,
   children,
   actions,
+  width,
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
   actions: ReactNode;
+  /** 창 너비(px). 없으면 기본 480 */
+  width?: number;
 }) {
   const titleId = useId();
   const boxRef = useRef<HTMLDivElement>(null);
@@ -222,6 +241,7 @@ export function TWindow({
       <div
         ref={boxRef}
         className="tt-window"
+        style={width ? { width } : undefined}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

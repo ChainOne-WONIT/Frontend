@@ -277,9 +277,8 @@ export function TerminalChainPage({ view = 'both' }: { view?: ChainPageView }) {
         </TField>
         <TField label="기업">
           <input
-            className="tf tf--req"
+            className="tf"
             list={listId}
-            placeholder="기업 이름 (여럿은 쉼표로)"
             aria-label="기업 이름 검색, 여러 기업은 쉼표로 구분"
             value={nameDraft}
             onChange={(e) => setNameDraft(e.target.value)}

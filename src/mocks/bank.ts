@@ -13,6 +13,9 @@ import type {
   BankSummary,
   ChainView,
   CompanyReviewInfo,
+  CompanyReviewLog,
+  CompanyReviewLogQuery,
+  CompanyReviewLogView,
   CompanyReviewOverview,
   CompanyReviewPatch,
   GradeLabel,
@@ -153,9 +156,39 @@ const companies: CompanyReviewInfo[] = [
   },
 ];
 
-const editLogs: CompanyReviewOverview['logs'] = [
-  { date: '2026-11-20', actor: REVIEWER, text: '동진산업(주) · 세금 체납 없음 → 있음' },
-  { date: '2026-11-12', actor: REVIEWER, text: '청운테크(주) · 부채비율 190% → 210%' },
+const editLogs: CompanyReviewLog[] = [
+  {
+    date: '2026-11-20',
+    actor: REVIEWER,
+    companyId: 'C',
+    companyName: '동진산업(주)',
+    text: '세금 체납 없음 → 있음',
+    reason: '국세청 체납 확인 (11-20)',
+  },
+  {
+    date: '2026-11-12',
+    actor: REVIEWER,
+    companyId: 'B',
+    companyName: '청운테크(주)',
+    text: '부채비율 190% → 210%',
+    reason: '3분기 재무제표 반영',
+  },
+  {
+    date: '2026-11-05',
+    actor: '박서준(심사)',
+    companyId: 'D',
+    companyName: '대광금속(주)',
+    text: '매출 58억 → 64억',
+    reason: '부가세 신고 자료 반영',
+  },
+  {
+    date: '2026-10-28',
+    actor: '박서준(심사)',
+    companyId: 'A',
+    companyName: '에이스정밀(주)',
+    text: '업력 13년 → 14년',
+    reason: '설립일 재확인',
+  },
 ];
 
 /** 예측 부실확률로 등급: 안정 기준 미만 안정 · 제외 기준 이상 제외 · 그 사이 관찰 (운영 설정값) */
@@ -502,7 +535,26 @@ export function mockKoditResult(id: string, req: KoditResultRequest): Promise<Re
 }
 
 export function mockCompanyReviews(): Promise<CompanyReviewOverview> {
-  return mockDelay({ asOf: AS_OF, companies, logs: editLogs });
+  return mockDelay({ asOf: AS_OF, companies });
+}
+
+/** 수정 이력: 기업명·수정자는 이름 일부로, 기간은 일자 앞뒤 포함 */
+export function mockCompanyReviewLogs(
+  q: CompanyReviewLogQuery = {},
+): Promise<CompanyReviewLogView> {
+  const company = q.company?.trim();
+  const actor = q.actor?.trim();
+  const logs = editLogs.filter(
+    (l) =>
+      (!company || l.companyName.includes(company)) &&
+      (!actor || l.actor.includes(actor)) &&
+      (!q.from || l.date >= q.from) &&
+      (!q.to || l.date <= q.to),
+  );
+  const actors = [...new Set(editLogs.map((l) => l.actor))].sort((a, b) =>
+    a.localeCompare(b, 'ko'),
+  );
+  return mockDelay({ asOf: AS_OF, logs, actors });
 }
 
 const FIELD_LABEL: Record<keyof CompanyReviewPatch, string> = {
@@ -554,10 +606,13 @@ export function mockUpdateCompanyReview(
     editLogs.unshift({
       date: today(),
       actor: REVIEWER,
-      text: `${c.name} · ${changes.join(', ')}${why}`,
+      companyId: c.id,
+      companyName: c.name,
+      text: changes.join(', '),
+      reason: reason?.trim() || undefined,
     });
   }
-  return mockDelay({ asOf: AS_OF, companies, logs: editLogs });
+  return mockDelay({ asOf: AS_OF, companies });
 }
 
 // ---------- 체인 ----------

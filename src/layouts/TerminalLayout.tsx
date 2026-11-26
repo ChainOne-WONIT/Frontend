@@ -8,6 +8,13 @@ import {
   useNavigationType,
   useOutlet,
 } from 'react-router';
+import {
+  FavoritesContext,
+  loadFavs,
+  saveFavs,
+  type Favorites,
+  type FavScreen,
+} from '../lib/favorites';
 import { ScreenActiveContext } from '../lib/screen-active';
 import { getBankMessages, getMyActivity } from '../api/bank';
 import { Icon } from '../components/Icon';
@@ -122,6 +129,29 @@ export function TerminalLayout() {
     () => getMyActivity(user?.employeeNo ?? '', since),
     [pathname, since, user?.employeeNo],
   );
+  // 왼쪽 메뉴: 기본메뉴(역할 메뉴 트리) | 나의메뉴(화면 제목 앞 별로 넣은 화면)
+  const [menuTab, setMenuTab] = useState<'base' | 'mine'>('base');
+  const employeeNo = user?.employeeNo ?? '';
+  const [favs, setFavs] = useState<FavScreen[]>(() => loadFavs(employeeNo));
+  const setAndSaveFavs = (next: FavScreen[]) => {
+    setFavs(next);
+    saveFavs(employeeNo, next);
+  };
+  const favApi: Favorites = {
+    isFav: (code) => favs.some((f) => f.code === code),
+    toggle: (code) => {
+      if (favs.some((f) => f.code === code)) {
+        setAndSaveFavs(favs.filter((f) => f.code !== code));
+        return;
+      }
+      const s = conf.screens.find((x) => x.code === code);
+      if (!s) return;
+      const path = tabs.find((t) => t.code === code)?.path ?? s.path;
+      setAndSaveFavs([...favs, { code, title: s.title, path }]);
+    },
+  };
+  const crumbRoot = menuTab === 'mine' && favApi.isFav(current.code) ? '나의메뉴' : '기본메뉴';
+
   const [panel, setPanel] = useState<'msgs' | 'mine'>('msgs');
   // 처리 기록·알림: 그 탭이 열려 있을 때 한 번 더 누르면 오른쪽 패널을 닫습니다.
   const togglePanel = (p: 'msgs' | 'mine') => {
@@ -167,285 +197,345 @@ export function TerminalLayout() {
     act === 'memo' ? memoOpen : act === 'calc' ? calcOpen : undefined;
 
   return (
-    <div className={`tm${msgsOpen ? '' : ' tm--nomsgs'}`}>
-      <header className="tm-top">
-        <Link to={conf.home} className="tm-logo">
-          <span className="tm-logo__mark" aria-hidden="true">
-            <i />
-            <i />
-          </span>
-          Chain-One {conf.name}단말
-        </Link>
-        <div className="tm-tools">
-          {TOOLS.map((t) => (
+    <FavoritesContext.Provider value={favApi}>
+      <div className={`tm${msgsOpen ? '' : ' tm--nomsgs'}`}>
+        <header className="tm-top">
+          <Link to={conf.home} className="tm-logo">
+            <span className="tm-logo__mark" aria-hidden="true">
+              <i />
+              <i />
+            </span>
+            Chain-One {conf.name}단말
+          </Link>
+          <div className="tm-tools">
+            {TOOLS.map((t) => (
+              <button
+                key={t.label}
+                type="button"
+                className={`tm-tool${pressed(t.act) ? ' is-on' : ''}`}
+                title={t.hint}
+                aria-pressed={pressed(t.act)}
+                onClick={() => tool(t.act)}
+              >
+                <span className="tm-tool__icon" aria-hidden="true" />
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <span className="tm-spacer" />
+          <nav className="tm-topmenu">
             <button
-              key={t.label}
               type="button"
-              className={`tm-tool${pressed(t.act) ? ' is-on' : ''}`}
-              title={t.hint}
-              aria-pressed={pressed(t.act)}
-              onClick={() => tool(t.act)}
+              className={msgsOpen && panel === 'mine' ? 'is-on' : undefined}
+              onClick={() => togglePanel('mine')}
             >
-              <span className="tm-tool__icon" aria-hidden="true" />
-              {t.label}
+              처리 기록{' '}
+              <b className="tm-badge tm-badge--blue">{activity.data?.items.length ?? 0}</b>
             </button>
+            <button
+              type="button"
+              className={msgsOpen && panel === 'msgs' ? 'is-on' : undefined}
+              onClick={() => togglePanel('msgs')}
+            >
+              알림 <b className="tm-badge">{msgs.data?.messages.length ?? 0}</b>
+            </button>
+            <button type="button" onClick={logout}>
+              로그아웃
+            </button>
+          </nav>
+        </header>
+
+        <nav className="tm-rail" aria-label="바로가기">
+          {conf.rail.map((r) => (
+            <NavLink
+              key={r.to}
+              to={tabPath(r.to)}
+              end={r.end}
+              className="tm-rail__item"
+              title={r.hint}
+            >
+              <Icon name={r.icon} size={16} />
+              {r.label}
+            </NavLink>
           ))}
-        </div>
-        <span className="tm-spacer" />
-        <nav className="tm-topmenu">
+          <span className="tm-rail__sep" />
           <button
             type="button"
-            className={msgsOpen && panel === 'mine' ? 'is-on' : undefined}
-            onClick={() => togglePanel('mine')}
+            className={`tm-rail__item${msgsOpen ? ' is-on' : ''}`}
+            title="오른쪽 알림메시지 보기/숨기기"
+            aria-pressed={msgsOpen}
+            onClick={() => setMsgsOpen((v) => !v)}
           >
-            처리 기록 <b className="tm-badge tm-badge--blue">{activity.data?.items.length ?? 0}</b>
+            <Icon name="bell" size={16} />
+            알림
           </button>
           <button
             type="button"
-            className={msgsOpen && panel === 'msgs' ? 'is-on' : undefined}
-            onClick={() => togglePanel('msgs')}
+            className="tm-rail__item"
+            title="기능키·화면 사용법"
+            onClick={() => setHelpOpen(true)}
           >
-            알림 <b className="tm-badge">{msgs.data?.messages.length ?? 0}</b>
+            <Icon name="info" size={16} />
+            도움말
           </button>
-          <button type="button" onClick={logout}>
-            로그아웃
+          <span className="tm-spacer" />
+          <button type="button" className="tm-rail__item" title="로그아웃" onClick={logout}>
+            <Icon name="logout" size={16} />
+            종료
           </button>
         </nav>
-      </header>
 
-      <nav className="tm-rail" aria-label="바로가기">
-        {conf.rail.map((r) => (
-          <NavLink
-            key={r.to}
-            to={tabPath(r.to)}
-            end={r.end}
-            className="tm-rail__item"
-            title={r.hint}
-          >
-            <Icon name={r.icon} size={16} />
-            {r.label}
-          </NavLink>
-        ))}
-        <span className="tm-rail__sep" />
-        <button
-          type="button"
-          className={`tm-rail__item${msgsOpen ? ' is-on' : ''}`}
-          title="오른쪽 알림메시지 보기/숨기기"
-          aria-pressed={msgsOpen}
-          onClick={() => setMsgsOpen((v) => !v)}
-        >
-          <Icon name="bell" size={16} />
-          알림
-        </button>
-        <button
-          type="button"
-          className="tm-rail__item"
-          title="기능키·화면 사용법"
-          onClick={() => setHelpOpen(true)}
-        >
-          <Icon name="info" size={16} />
-          도움말
-        </button>
-        <span className="tm-spacer" />
-        <button type="button" className="tm-rail__item" title="로그아웃" onClick={logout}>
-          <Icon name="logout" size={16} />
-          종료
-        </button>
-      </nav>
-
-      <nav className="tm-tree" aria-label={`${conf.name} 메뉴`}>
-        <div className="tm-tree__tabs">
-          <span className="is-on">기본메뉴</span>
-          <span>나의메뉴</span>
-        </div>
-        <div className="tm-tree__group">{conf.name}</div>
-        <ul>
-          {conf.tree.map((t) =>
-            t.to ? (
-              <li key={t.label} style={{ paddingLeft: 6 + t.depth * 14 }}>
-                <NavLink
-                  to={tabPath(t.to)}
-                  end={t.end}
-                  className={`tm-tree__link${t.depth === 0 ? ' tm-tree__link--top' : ''}`}
-                >
-                  {t.depth === 0 ? '■' : '·'} {t.label}
-                </NavLink>
-              </li>
-            ) : (
-              <li
-                key={t.label}
-                style={{ paddingLeft: 6 + t.depth * 14 }}
-                className={`${t.group ? 'tm-tree__head' : 'tm-tree__sub'}${t.match?.test(pathname) ? ' is-on' : ''}`}
+        <nav className="tm-tree" aria-label={`${conf.name} 메뉴`}>
+          <div className="tm-tree__tabs" role="tablist" aria-label="메뉴 종류">
+            {(
+              [
+                ['base', '기본메뉴'],
+                ['mine', '나의메뉴'],
+              ] as const
+            ).map(([k, label]) => (
+              <button
+                key={k}
+                type="button"
+                role="tab"
+                aria-selected={menuTab === k}
+                className={menuTab === k ? 'is-on' : undefined}
+                onClick={() => setMenuTab(k)}
               >
-                {t.group ? `▾ ${t.label}` : `· ${t.label}`}
-              </li>
-            ),
-          )}
-        </ul>
-      </nav>
-
-      <main className="tm-main">
-        <div className="tm-crumb">
-          ★ 나의메뉴 &gt; {conf.name} &gt; {current.title}
-        </div>
-        <div className="tm-tabs" role="tablist" aria-label="열어 둔 화면">
-          {tabs.map((t) => (
-            <span
-              key={t.code}
-              role="tab"
-              aria-selected={t.code === current.code}
-              className={`tm-tab${t.code === current.code ? ' is-on' : ''}`}
-            >
-              <Link to={t.path} title={t.title}>
-                {t.code}
-              </Link>
-              <button type="button" aria-label={`${t.title} 닫기`} onClick={() => closeTab(t.code)}>
-                ×
+                {label}
+                {k === 'mine' && favs.length > 0 && ` (${favs.length})`}
               </button>
-            </span>
-          ))}
-        </div>
-        <section
-          ref={screenRef}
-          className="tm-screen"
-          onScroll={(e) => {
-            scrolls.current[current.code] = e.currentTarget.scrollTop;
-          }}
-        >
-          {tabs.map((t) => {
-            const on = t.code === current.code;
-            const el = on ? outlet : kept[t.code]?.el;
-            const loc = on ? liveLoc : kept[t.code]?.loc;
-            if (!el || !loc) return null;
-            // 숨은 탭은 떠날 때의 주소를 그대로 보게 해서, 검색 조건이 지금 주소로 바뀌지 않게 합니다.
-            return (
-              <div key={t.code} className="tm-screen__pane" hidden={!on}>
-                <ScreenActiveContext.Provider value={on}>
-                  <LocationContext.Provider value={loc}>{el}</LocationContext.Provider>
-                </ScreenActiveContext.Provider>
-              </div>
-            );
-          })}
-        </section>
-      </main>
-
-      {msgsOpen && (
-        <aside className="tm-msgs" aria-label="알림메시지">
-          <div className="tm-msgs__tabs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={panel === 'msgs'}
-              className={panel === 'msgs' ? 'is-on' : undefined}
-              onClick={() => setPanel('msgs')}
-            >
-              알림메시지
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={panel === 'mine'}
-              className={panel === 'mine' ? 'is-on' : undefined}
-              onClick={() => setPanel('mine')}
-            >
-              내 처리 기록
-            </button>
+            ))}
           </div>
-          {panel === 'msgs' ? (
-            <ul>
-              {msgs.data?.messages.map((m, i) => (
-                <li key={i}>
-                  <span>
-                    <em>{m.at}</em> <b>{m.title}</b>
-                  </span>
-                  <small>{m.detail}</small>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <>
-              <p className="tm-msgs__since">
-                로그인 {since.slice(11)} 이후 · {activity.data?.items.length ?? 0}건
+          <div className="tm-tree__group">{menuTab === 'mine' ? '나의메뉴' : conf.name}</div>
+          {menuTab === 'mine' ? (
+            favs.length === 0 ? (
+              <p className="tm-tree__empty">
+                나의메뉴가 비어 있습니다.
+                <br />
+                화면 제목 앞 ☆을 누르면 여기에 모입니다.
               </p>
-              {activity.data && activity.data.items.length === 0 ? (
-                <p className="tm-msgs__empty">
-                  로그인한 뒤 처리하거나 조회한 내용이 아직 없습니다.
-                </p>
-              ) : (
-                <ul>
-                  {activity.data?.items.map((l) => (
-                    <li key={l.id}>
-                      <span>
-                        <em>{l.at.slice(11)}</em>{' '}
-                        <i className={`tm-kind tm-kind--${l.kind === '조회' ? 'view' : 'act'}`}>
-                          {l.kind}
-                        </i>{' '}
-                        <b>{activityTitle(l.content)}</b>
-                      </span>
-                      <small>
-                        {l.target}
-                        {activityDetail(l.content) && ` · ${activityDetail(l.content)}`}
-                      </small>
-                    </li>
-                  ))}
-                </ul>
+            ) : (
+              <ul>
+                {favs.map((f) => (
+                  <li key={f.code} className="tm-tree__fav">
+                    <NavLink
+                      // 이미 열린 탭이면 그 탭이 보던 주소로, 아니면 넣을 때의 주소로 갑니다.
+                      to={tabs.find((t) => t.code === f.code)?.path ?? f.path}
+                      end
+                      className="tm-tree__link"
+                    >
+                      <span className="tm-tree__star" aria-hidden="true">
+                        ★
+                      </span>{' '}
+                      {f.title}
+                      <small>{f.code}</small>
+                    </NavLink>
+                    <button
+                      type="button"
+                      aria-label={`${f.title} 나의메뉴에서 빼기`}
+                      title="나의메뉴에서 빼기"
+                      onClick={() => favApi.toggle(f.code)}
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )
+          ) : (
+            <ul>
+              {conf.tree.map((t) =>
+                t.to ? (
+                  <li key={t.label} style={{ paddingLeft: 6 + t.depth * 14 }}>
+                    <NavLink
+                      to={tabPath(t.to)}
+                      end={t.end}
+                      className={`tm-tree__link${t.depth === 0 ? ' tm-tree__link--top' : ''}`}
+                    >
+                      {t.depth === 0 ? '■' : '·'} {t.label}
+                    </NavLink>
+                  </li>
+                ) : (
+                  <li
+                    key={t.label}
+                    style={{ paddingLeft: 6 + t.depth * 14 }}
+                    className={`${t.group ? 'tm-tree__head' : 'tm-tree__sub'}${t.match?.test(pathname) ? ' is-on' : ''}`}
+                  >
+                    {t.group ? `▾ ${t.label}` : `· ${t.label}`}
+                  </li>
+                ),
               )}
-            </>
+            </ul>
           )}
-        </aside>
-      )}
+        </nav>
 
-      {helpOpen && (
-        <TWindow
-          title="도움말 · 기능키"
-          onClose={() => setHelpOpen(false)}
-          actions={
-            <button type="button" className="tb tb--primary" onClick={() => setHelpOpen(false)}>
-              닫기[Esc]
-            </button>
-          }
-        >
-          <table className="tt-table">
-            <thead>
-              <tr>
-                <th>키</th>
-                <th>동작</th>
-              </tr>
-            </thead>
-            <tbody>
-              {conf.help.map(([k, v]) => (
-                <tr key={k}>
-                  <td className="c">
-                    <b>{k}</b>
-                  </td>
-                  <td>{v}</td>
+        <main className="tm-main">
+          <div className="tm-crumb">
+            {crumbRoot} &gt; {conf.name} &gt; {current.title}
+          </div>
+          <div className="tm-tabs" role="tablist" aria-label="열어 둔 화면">
+            {tabs.map((t) => (
+              <span
+                key={t.code}
+                role="tab"
+                aria-selected={t.code === current.code}
+                className={`tm-tab${t.code === current.code ? ' is-on' : ''}`}
+              >
+                <Link to={t.path} title={t.title}>
+                  {t.code}
+                </Link>
+                <button
+                  type="button"
+                  aria-label={`${t.title} 닫기`}
+                  onClick={() => closeTab(t.code)}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          <section
+            ref={screenRef}
+            className="tm-screen"
+            onScroll={(e) => {
+              scrolls.current[current.code] = e.currentTarget.scrollTop;
+            }}
+          >
+            {tabs.map((t) => {
+              const on = t.code === current.code;
+              const el = on ? outlet : kept[t.code]?.el;
+              const loc = on ? liveLoc : kept[t.code]?.loc;
+              if (!el || !loc) return null;
+              // 숨은 탭은 떠날 때의 주소를 그대로 보게 해서, 검색 조건이 지금 주소로 바뀌지 않게 합니다.
+              return (
+                <div key={t.code} className="tm-screen__pane" hidden={!on}>
+                  <ScreenActiveContext.Provider value={on}>
+                    <LocationContext.Provider value={loc}>{el}</LocationContext.Provider>
+                  </ScreenActiveContext.Provider>
+                </div>
+              );
+            })}
+          </section>
+        </main>
+
+        {msgsOpen && (
+          <aside className="tm-msgs" aria-label="알림메시지">
+            <div className="tm-msgs__tabs" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={panel === 'msgs'}
+                className={panel === 'msgs' ? 'is-on' : undefined}
+                onClick={() => setPanel('msgs')}
+              >
+                알림메시지
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={panel === 'mine'}
+                className={panel === 'mine' ? 'is-on' : undefined}
+                onClick={() => setPanel('mine')}
+              >
+                내 처리 기록
+              </button>
+            </div>
+            {panel === 'msgs' ? (
+              <ul>
+                {msgs.data?.messages.map((m, i) => (
+                  <li key={i}>
+                    <span>
+                      <em>{m.at}</em> <b>{m.title}</b>
+                    </span>
+                    <small>{m.detail}</small>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <>
+                <p className="tm-msgs__since">
+                  로그인 {since.slice(11)} 이후 · {activity.data?.items.length ?? 0}건
+                </p>
+                {activity.data && activity.data.items.length === 0 ? (
+                  <p className="tm-msgs__empty">
+                    로그인한 뒤 처리하거나 조회한 내용이 아직 없습니다.
+                  </p>
+                ) : (
+                  <ul>
+                    {activity.data?.items.map((l) => (
+                      <li key={l.id}>
+                        <span>
+                          <em>{l.at.slice(11)}</em>{' '}
+                          <i className={`tm-kind tm-kind--${l.kind === '조회' ? 'view' : 'act'}`}>
+                            {l.kind}
+                          </i>{' '}
+                          <b>{activityTitle(l.content)}</b>
+                        </span>
+                        <small>
+                          {l.target}
+                          {activityDetail(l.content) && ` · ${activityDetail(l.content)}`}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+          </aside>
+        )}
+
+        {helpOpen && (
+          <TWindow
+            title="도움말 · 기능키"
+            onClose={() => setHelpOpen(false)}
+            actions={
+              <button type="button" className="tb tb--primary" onClick={() => setHelpOpen(false)}>
+                닫기[Esc]
+              </button>
+            }
+          >
+            <table className="tt-table">
+              <thead>
+                <tr>
+                  <th>키</th>
+                  <th>동작</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="tt-note">
-            ※ 표의 행은 한 번 누르면 선택, 두 번 누르면 상세(조회 사유 입력)로 갑니다. 상세 조회는
-            모두 처리·조회 기록에 남습니다.
-          </p>
-        </TWindow>
-      )}
-      {memoOpen && (
-        <MemoPanel owner={user?.employeeNo ?? 'guest'} onClose={() => setMemoOpen(false)} />
-      )}
-      {calcOpen && <CalculatorPanel onClose={() => setCalcOpen(false)} />}
+              </thead>
+              <tbody>
+                {conf.help.map(([k, v]) => (
+                  <tr key={k}>
+                    <td className="c">
+                      <b>{k}</b>
+                    </td>
+                    <td>{v}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="tt-note">
+              ※ 표의 행은 한 번 누르면 선택, 두 번 누르면 상세(조회 사유 입력)로 갑니다. 상세 조회는
+              모두 처리·조회 기록에 남습니다.
+            </p>
+          </TWindow>
+        )}
+        {memoOpen && (
+          <MemoPanel owner={user?.employeeNo ?? 'guest'} onClose={() => setMemoOpen(false)} />
+        )}
+        {calcOpen && <CalculatorPanel onClose={() => setCalcOpen(false)} />}
 
-      <footer className="tm-status">
-        <span className="tm-status__ok">● 온라인</span>
-        <span>내부망 접속</span>
-        <span>조회 기록 저장 중</span>
-        <span className="tm-spacer" />
-        <span>{conf.dept}</span>
-        <span>사번 {user?.employeeNo}</span>
-        <b>
-          {user?.name} ({user?.roleLabel})
-        </b>
-        <span>{now}</span>
-      </footer>
-    </div>
+        <footer className="tm-status">
+          <span className="tm-status__ok">● 온라인</span>
+          <span>내부망 접속</span>
+          <span>조회 기록 저장 중</span>
+          <span className="tm-spacer" />
+          <span>{conf.dept}</span>
+          <span>사번 {user?.employeeNo}</span>
+          <b>
+            {user?.name} ({user?.roleLabel})
+          </b>
+          <span>{now}</span>
+        </footer>
+      </div>
+    </FavoritesContext.Provider>
   );
 }

@@ -29,8 +29,23 @@
   gap: 8px;
 }
 .tt-title__star {
-  color: #f0a500;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: #9aabbd;
+  font: inherit;
+  font-size: 15px;
   font-weight: 700;
+  line-height: 1;
+}
+button.tt-title__star {
+  cursor: pointer;
+}
+button.tt-title__star:hover {
+  color: #f0a500;
+}
+.tt-title__star.is-on {
+  color: #f0a500;
 }
 .tt-title__code {
   color: #1f6fb8;
@@ -352,6 +367,9 @@ input.tf::placeholder {
 }
 .tt-window {
   width: 480px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   border: 1.5px solid #16324f;
   background: #fff;
   box-shadow: 4px 6px 16px rgba(0, 0, 0, 0.3);

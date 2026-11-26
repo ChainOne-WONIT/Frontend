@@ -441,10 +441,40 @@ export type CompanyReviewPatch = Partial<
   >
 >;
 
+/** 기업 심사 정보 수정 기록 한 건 (삭제할 수 없음) */
+export interface CompanyReviewLog {
+  date: string;
+  actor: string;
+  companyId: string;
+  companyName: string;
+  /** 바뀐 항목, 예: '부채비율 190% → 210%' */
+  text: string;
+  /** 수정 사유 */
+  reason?: string;
+}
+
 export interface CompanyReviewOverview {
   asOf: string;
   companies: CompanyReviewInfo[];
-  logs: { date: string; actor: string; text: string }[];
+}
+
+export interface CompanyReviewLogQuery {
+  /** 기업 이름 일부 */
+  company?: string;
+  /** 수정자 이름 일부 */
+  actor?: string;
+  /** 'YYYY-MM-DD' 이후 (포함) */
+  from?: string;
+  /** 'YYYY-MM-DD' 이전 (포함) */
+  to?: string;
+}
+
+export interface CompanyReviewLogView {
+  asOf: string;
+  /** 최근 것부터 */
+  logs: CompanyReviewLog[];
+  /** 수정자 고르기용 (중복 없음) */
+  actors: string[];
 }
 
 /** 체인 안에서의 위치: 시작 기업(원청) → 1차 → 2차 → 3차 협력사 */

@@ -194,19 +194,62 @@
 .tm-tree__tabs {
   display: flex;
 }
-.tm-tree__tabs span {
+.tm-tree__tabs button {
   flex: 1;
   padding: 6px 0;
   border: 1px solid var(--tm-line);
   background: var(--tm-head);
   color: var(--tm-sub);
+  font: inherit;
   font-size: 11px;
   text-align: center;
+  cursor: pointer;
 }
-.tm-tree__tabs span.is-on {
+.tm-tree__tabs button:hover {
+  color: var(--tm-navy);
+}
+.tm-tree__tabs button.is-on {
+  border-bottom-color: #fff;
   background: #fff;
   color: var(--tm-navy);
   font-weight: 700;
+}
+/* 나의메뉴 */
+.tm-tree__empty {
+  margin: 0;
+  padding: 14px 10px;
+  color: var(--tm-sub);
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: center;
+}
+.tm-tree__fav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.tm-tree__fav .tm-tree__link {
+  flex: 1;
+  min-width: 0;
+}
+.tm-tree__fav small {
+  margin-left: 4px;
+  color: var(--tm-sub);
+  font-size: 10px;
+  font-weight: 400;
+}
+.tm-tree__fav > button {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--tm-sub);
+  cursor: pointer;
+}
+.tm-tree__fav > button:hover {
+  color: #d93025;
+}
+.tm-tree__star {
+  color: #f0a500;
 }
 .tm-tree__group {
   padding: 5px 0;

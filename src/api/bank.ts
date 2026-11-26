@@ -4,6 +4,8 @@ import type {
   MyActivity,
   ChainQuery,
   ChainView,
+  CompanyReviewLogQuery,
+  CompanyReviewLogView,
   CompanyReviewOverview,
   CompanyReviewPatch,
   KoditResultRequest,
@@ -52,6 +54,15 @@ export function submitKoditResult(id: string, body: KoditResultRequest): Promise
 export function getCompanyReviews(): Promise<CompanyReviewOverview> {
   if (USE_MOCK) return mock.mockCompanyReviews();
   return request('GET', '/api/bank/review/companies');
+}
+
+/** 기업 심사 정보 수정 이력 — GET /api/bank/review/companies/logs?company=&actor=&from=&to= */
+export function getCompanyReviewLogs(q: CompanyReviewLogQuery = {}): Promise<CompanyReviewLogView> {
+  if (USE_MOCK) return mock.mockCompanyReviewLogs(q);
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(q)) if (v) params.set(k, v);
+  const qs = params.toString();
+  return request('GET', `/api/bank/review/companies/logs${qs ? `?${qs}` : ''}`);
 }
 
 /** 기업 심사 정보 수정 — PATCH /api/bank/review/companies/{id} { ...값, reason? } */

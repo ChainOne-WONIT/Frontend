@@ -23,6 +23,7 @@ import { SettingsPage } from './pages/bank/ops/SettingsPage';
 import { SignupDetailPage } from './pages/bank/ops/SignupDetailPage';
 import { SignupApprovalsPage } from './pages/bank/ops/SignupApprovalsPage';
 import { TerminalChainPage } from './pages/bank/review/TerminalChainPage';
+import { CompanyReviewLogsPage } from './pages/bank/review/CompanyReviewLogsPage';
 import { CompanyReviewPage } from './pages/bank/review/CompanyReviewPage';
 import { ReviewApplicationsPage } from './pages/bank/review/ReviewApplicationsPage';
 import { ReviewDashboardPage } from './pages/bank/review/ReviewDashboardPage';
@@ -79,6 +80,7 @@ export default function App() {
         <Route path="applications" element={<ReviewApplicationsPage />} />
         <Route path="applications/:id" element={<ReviewDetailPage />} />
         <Route path="companies" element={<CompanyReviewPage />} />
+        <Route path="companies/logs" element={<CompanyReviewLogsPage />} />
         <Route path="chain" element={<TerminalChainPage view="chains" />} />
         <Route path="chain-loans" element={<TerminalChainPage view="loans" />} />
         <Route path="notices" element={<NoticesPage />} />
