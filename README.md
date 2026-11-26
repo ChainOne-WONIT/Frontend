@@ -40,35 +40,37 @@ npm run dev            # http://localhost:5173
 
 ## 화면
 
-| 경로                            | 화면                                                        |
-| ------------------------------- | ----------------------------------------------------------- |
-| `/login`                        | 기업 로그인                                                 |
-| `/login?type=bank`              | 은행 로그인 (내부망이 아니면 접속 차단 화면)                |
-| `/signup`                       | 기업 회원가입 (약관동의 → 업체정보 입력 → 가입완료)         |
-| `/corp`                         | 기업 홈                                                     |
-| `/corp/orders`                  | 발주 목록 (받은 발주 / 낸 발주)                             |
-| `/corp/orders/:id`              | 발주 상세 (진행 단계별 버튼: 수락·납품 등록·수령 확인 등)   |
-| `/corp/orders/new`              | 발주 등록                                                   |
-| `/corp/fund`                    | 생산자금                                                    |
-| `/corp/alerts`                  | 거래처 경보                                                 |
-| `/corp/me`                      | 내 정보                                                     |
-| `/bank/review`                  | 심사 대시보드                                               |
-| `/bank/review/applications`     | 한도 신청 심사 (상세는 조회 사유를 고른 뒤 열림)            |
-| `/bank/review/applications/:id` | 심사 상세 (자격 확인·등급·판정·신보 결과 입력)              |
-| `/bank/review/companies`        | 기업 심사 정보 관리                                         |
-| `/bank/review/chain`            | 발주 체인 조회                                              |
-| `/bank/ops`                     | 운영 대시보드                                               |
-| `/bank/ops/signups`             | 기업 가입 승인 (승인·반려)                                  |
-| `/bank/ops/signups/:id`         | 가입 신청 상세 (조회 사유를 고른 뒤 열림, 승인·반려)        |
-| `/bank/ops/settings`            | 설정값 관리 (등급 기준·경보 가중치·경보 단계)               |
-| `/bank/ops/logs`                | 처리·조회 기록 (열람만)                                     |
-| `/bank/loan`                    | 여신 대시보드                                               |
-| `/bank/loan/loans`              | 생산자금 대출 (승인 대기·대출 현황·대금 지급 지연)          |
-| `/bank/loan/loans/:id`          | 대출 상세 (조회 사유를 고른 뒤 열림, 승인하고 실행·보류)    |
-| `/bank/loan/alerts`             | 리스크 경보                                                 |
-| `/bank/loan/alerts/:id`         | 경보 상세 (점수와 신호·조치 기록·전이 계산)                 |
-| `/bank/loan/events`             | 이벤트 신호 등록 (체납·신용등급 하락·부도·회생 신청·휴폐업) |
-| `/bank/loan/chain`              | 발주 체인 조회 (심사와 같은 화면)                           |
+| 경로                              | 화면                                                        |
+| --------------------------------- | ----------------------------------------------------------- |
+| `/login`                          | 기업 로그인                                                 |
+| `/login?type=bank`                | 은행 로그인 (내부망이 아니면 접속 차단 화면)                |
+| `/signup`                         | 기업 회원가입 (약관동의 → 업체정보 입력 → 가입완료)         |
+| `/corp`                           | 기업 홈                                                     |
+| `/corp/orders`                    | 발주 목록 (받은 발주 / 낸 발주)                             |
+| `/corp/orders/:id`                | 발주 상세 (진행 단계별 버튼: 수락·납품 등록·수령 확인 등)   |
+| `/corp/orders/new`                | 발주 등록                                                   |
+| `/corp/fund`                      | 생산자금                                                    |
+| `/corp/alerts`                    | 거래처 경보                                                 |
+| `/corp/me`                        | 내 정보                                                     |
+| `/bank/review`                    | 심사 대시보드                                               |
+| `/bank/review/applications`       | 한도 신청 심사 (상세는 조회 사유를 고른 뒤 열림)            |
+| `/bank/review/applications/:id`   | 심사 상세 (자격 확인·등급·판정·신보 결과 입력)              |
+| `/bank/review/companies`          | 기업 심사 정보 관리                                         |
+| `/bank/review/chain`              | 발주 체인 조회 (기업 검색 + 체인 그림)                      |
+| `/bank/review/chain-loans`        | 체인 대출 현황 (같은 검색 + 체인 안의 발주와 대출)          |
+| `/bank/ops`                       | 운영 대시보드                                               |
+| `/bank/ops/signups`               | 기업 가입 승인 (승인·반려)                                  |
+| `/bank/ops/signups/:id`           | 가입 신청 상세 (조회 사유를 고른 뒤 열림, 승인·반려)        |
+| `/bank/ops/settings`              | 설정값 관리 (등급 기준·경보 가중치·경보 단계)               |
+| `/bank/ops/logs`                  | 처리·조회 기록 (열람만)                                     |
+| `/bank/loan`                      | 여신 대시보드                                               |
+| `/bank/loan/loans`                | 생산자금 대출 (승인 대기·대출 현황·대금 지급 지연)          |
+| `/bank/loan/loans/:id`            | 대출 상세 (조회 사유를 고른 뒤 열림, 승인하고 실행·보류)    |
+| `/bank/loan/alerts`               | 리스크 경보                                                 |
+| `/bank/loan/alerts/:id`           | 경보 상세 (점수와 신호·조치 기록·전이 계산)                 |
+| `/bank/loan/events`               | 이벤트 신호 등록 (체납·신용등급 하락·부도·회생 신청·휴폐업) |
+| `/bank/loan/chain`                | 발주 체인 조회 (심사와 같은 화면)                           |
+| `/bank/{review,loan,ops}/notices` | 공지·규정 (역할별 공지와 업무 규정)                         |
 
 은행 화면은 심사·여신·운영 담당 모두 만들었습니다.
 
@@ -112,6 +114,8 @@ npm run dev            # http://localhost:5173
 | POST   | `/api/orders/{id}/receive`                        | 수령 확인 (낸 기업)                                |
 | POST   | `/api/orders/{id}/payment`                        | 대금 지급 등록                                     |
 | GET    | `/api/companies/counterparties`                   | 발주 가능 기업 목록                                |
+| GET    | `/api/companies?query=`                           | 기업 검색 (공개 정보만)                            |
+| GET    | `/api/companies/{id}`                             | 기업 공개 정보 상세                                |
 | GET    | `/api/funds`                                      | 생산자금 현황                                      |
 | POST   | `/api/funds/loans`                                | 생산자금 신청                                      |
 | GET    | `/api/alerts`                                     | 거래처 경보                                        |
@@ -145,6 +149,7 @@ npm run dev            # http://localhost:5173
 | GET    | `/api/bank/events`                                | 이벤트 신호 목록                                   |
 | POST   | `/api/bank/events`                                | 이벤트 등록                                        |
 | POST   | `/api/bank/events/{id}/cancel`                    | 이벤트 등록 취소                                   |
+| GET    | `/api/bank/notices?role=`                         | 공지·규정                                          |
 
 ## 개발 환경
 

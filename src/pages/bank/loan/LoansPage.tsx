@@ -90,10 +90,10 @@ export function LoansPage() {
             value={draft.status}
             onChange={(e) => setDraft({ ...draft, status: e.target.value as Filter['status'] })}
           >
-            <option value="">0:전체</option>
-            {(Object.keys(LOAN_STATUS_LABEL) as LoanStatus[]).map((s, i) => (
+            <option value="">전체</option>
+            {(Object.keys(LOAN_STATUS_LABEL) as LoanStatus[]).map((s) => (
               <option key={s} value={s}>
-                {i + 1}:{LOAN_STATUS_LABEL[s]}
+                {LOAN_STATUS_LABEL[s]}
               </option>
             ))}
           </select>

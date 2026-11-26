@@ -1,0 +1,143 @@
+/* 기업 검색 창 */
+.modal__box.cs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 600px;
+  max-height: calc(100vh - 48px);
+}
+.cs__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cs__head .spacer {
+  flex: 1;
+}
+.cs__back,
+.cs__close {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--sub);
+  font-size: 13px;
+}
+.cs__back:hover,
+.cs__close:hover {
+  background: var(--tint);
+  color: var(--navy);
+}
+.cs__search {
+  display: flex;
+  gap: 8px;
+}
+.cs__input {
+  flex: 1;
+}
+.cs__hint {
+  margin-top: -6px;
+}
+.cs__list {
+  min-height: 160px;
+  max-height: 420px;
+  overflow-y: auto;
+  margin: 0 -6px;
+  padding: 0 6px;
+}
+.cs__list .list li + li {
+  border-top: 1px solid var(--line);
+}
+.cs__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 6px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+.cs__item:hover {
+  background: var(--tint);
+}
+.cs__item .list__main {
+  display: flex;
+  flex-direction: column;
+}
+.cs__item > svg {
+  color: var(--muted);
+}
+.cs__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--tint-strong);
+  color: var(--blue);
+  font-weight: 700;
+}
+.cs__avatar--lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 20px;
+}
+.cs__badge {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--green-bg);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 700;
+}
+.cs__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+.cs__profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cs__profile > div {
+  display: flex;
+  flex-direction: column;
+}
+.cs__name {
+  font-size: 18px;
+}
+.cs__detail .kv a {
+  color: var(--blue);
+}
+/* 검색 칸 안의 돋보기 (로그인 화면 스타일에 기대지 않도록 따로 둠) */
+.cs__input {
+  position: relative;
+  display: block;
+}
+.cs__input > svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  color: var(--sub);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.cs__input .input {
+  padding-left: 42px;
+}
+/* 새 검색 결과를 불러오는 동안 이전 목록은 흐리게 */
+.cs__list.is-loading {
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { createOrder, getCounterparties } from '../../api/corp';
 import { Card, KeyValue, Note } from '../../components/ui';
 import { PageHead } from '../../layouts/CorpLayout';
@@ -11,8 +11,10 @@ const today = new Date().toISOString().slice(0, 10);
 export function OrderNewPage() {
   const navigate = useNavigate();
   const cps = useAsync(getCounterparties, []);
+  // 기업 검색에서 [발주 등록하기]로 들어오면 그 기업을 받는 기업으로 미리 골라 둡니다.
+  const picked = (useLocation().state as { receiverId?: string } | null)?.receiverId;
   const [f, setF] = useState({
-    receiverId: '',
+    receiverId: picked ?? '',
     item: '',
     quantity: '',
     amountMan: '',
@@ -89,6 +91,11 @@ export function OrderNewPage() {
                   </option>
                 ))}
               </select>
+              {picked && f.receiverId === picked && (
+                <span className="field__help">
+                  기업 검색에서 고른 기업입니다. 다른 기업으로 바꿀 수도 있습니다.
+                </span>
+              )}
             </label>
             <label className="field">
               <span className="field__label">품목 *</span>

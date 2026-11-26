@@ -1,5 +1,5 @@
 /* 은행 단말 화면 틀의 역할별 설정: 화면 번호, 바로가기, 메뉴 트리, 기능키 도움말 */
-import type { BankRole } from '../api/types';
+import type { BankRole, BankRoleName } from '../api/types';
 import type { IconName } from '../components/Icon';
 
 export type TerminalScreen = { code: string; title: string; path: string; match: RegExp };
@@ -16,7 +16,7 @@ export type TreeItem = {
 
 export interface TerminalRole {
   /** 심사 · 여신 · 운영 */
-  name: string;
+  name: BankRoleName;
   dept: string;
   home: string;
   /** 위에서부터 먼저 맞는 화면을 씁니다 (상세 화면을 목록보다 먼저) */
@@ -57,10 +57,22 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
         match: /^\/bank\/review\/companies/,
       },
       {
+        code: 'R0410',
+        title: '체인 대출 현황',
+        path: '/bank/review/chain-loans',
+        match: /^\/bank\/review\/chain-loans/,
+      },
+      {
         code: 'R0400',
         title: '발주 체인 조회',
         path: '/bank/review/chain',
         match: /^\/bank\/review\/chain/,
+      },
+      {
+        code: 'R0900',
+        title: '공지·규정',
+        path: '/bank/review/notices',
+        match: /^\/bank\/review\/notices/,
       },
     ],
     rail: [
@@ -85,10 +97,9 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
       { label: '수정 이력 조회', depth: 2, match: /^\/bank\/review\/companies/ },
       { label: '체인', depth: 0, group: true },
       { label: '발주 체인 조회', depth: 1, to: '/bank/review/chain' },
-      { label: '체인 대출 현황', depth: 2, match: /^\/bank\/review\/chain/ },
+      { label: '체인 대출 현황', depth: 1, to: '/bank/review/chain-loans' },
       { label: '여신 연계', depth: 0, group: true },
-      { label: '처리·조회 기록', depth: 0, group: true },
-      { label: '공지·규정', depth: 0, group: true },
+      { label: '공지·규정', depth: 0, to: '/bank/review/notices' },
     ],
     help: [
       ['F2', '조회 (툴바 [조회]와 같음)'],
@@ -143,6 +154,12 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
         path: '/bank/loan/chain',
         match: /^\/bank\/loan\/chain/,
       },
+      {
+        code: 'L0900',
+        title: '공지·규정',
+        path: '/bank/loan/notices',
+        match: /^\/bank\/loan\/notices/,
+      },
     ],
     rail: [
       { label: '업무', to: '/bank/loan', icon: 'grid', end: true, hint: '여신 대시보드' },
@@ -163,8 +180,7 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
       { label: '체인', depth: 0, group: true },
       { label: '발주 체인 조회', depth: 1, to: '/bank/loan/chain' },
       { label: '심사 연계', depth: 0, group: true },
-      { label: '처리·조회 기록', depth: 0, group: true },
-      { label: '공지·규정', depth: 0, group: true },
+      { label: '공지·규정', depth: 0, to: '/bank/loan/notices' },
     ],
     help: [
       ['F2', '조회 (툴바 [조회]와 같음)'],
@@ -207,6 +223,12 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
         path: '/bank/ops/logs',
         match: /^\/bank\/ops\/logs/,
       },
+      {
+        code: 'O0900',
+        title: '공지·규정',
+        path: '/bank/ops/notices',
+        match: /^\/bank\/ops\/notices/,
+      },
     ],
     rail: [
       { label: '업무', to: '/bank/ops', icon: 'grid', end: true, hint: '운영 대시보드' },
@@ -221,10 +243,8 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
       { label: '가입 신청 상세 (조회 사유)', depth: 2, match: /^\/bank\/ops\/signups\/.+/ },
       { label: '설정', depth: 0, group: true },
       { label: '설정값 관리', depth: 1, to: '/bank/ops/settings' },
-      { label: '기록', depth: 0, group: true },
-      { label: '처리·조회 기록', depth: 1, to: '/bank/ops/logs' },
       { label: '심사·여신 현황', depth: 0, group: true },
-      { label: '공지·규정', depth: 0, group: true },
+      { label: '공지·규정', depth: 0, to: '/bank/ops/notices' },
     ],
     help: [
       ['F2', '조회 (툴바 [조회]와 같음)'],

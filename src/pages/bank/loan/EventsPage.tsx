@@ -113,9 +113,9 @@ function EventsBody({ data, onChange }: { data: RiskEvents; onChange: (d: RiskEv
                   value={type}
                   onChange={(e) => setType(e.target.value as RiskEventType)}
                 >
-                  {TYPES.map((t, i) => (
+                  {TYPES.map((t) => (
                     <option key={t} value={t}>
-                      {i + 1}:{t}
+                      {t}
                     </option>
                   ))}
                 </select>

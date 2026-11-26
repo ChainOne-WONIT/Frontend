@@ -73,10 +73,10 @@ export function AuditLogPage() {
             value={draft.actor ?? ''}
             onChange={(e) => set({ actor: e.target.value || undefined })}
           >
-            <option value="">0:전체</option>
-            {data?.actors.map((a, i) => (
+            <option value="">전체</option>
+            {data?.actors.map((a) => (
               <option key={a} value={a}>
-                {i + 1}:{a}
+                {a}
               </option>
             ))}
           </select>
@@ -87,9 +87,9 @@ export function AuditLogPage() {
             value={draft.kind ?? ''}
             onChange={(e) => set({ kind: (e.target.value || undefined) as AuditQuery['kind'] })}
           >
-            <option value="">0:전체</option>
-            <option value="조회">1:조회</option>
-            <option value="처리">2:처리</option>
+            <option value="">전체</option>
+            <option value="조회">조회</option>
+            <option value="처리">처리</option>
           </select>
         </TField>
         <TField label="대상">

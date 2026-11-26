@@ -103,9 +103,9 @@ export function ReviewApplicationsPage() {
             value={draft.scope}
             onChange={(e) => setDraft({ ...draft, scope: e.target.value as Filter['scope'] })}
           >
-            <option value="">0:전체</option>
-            <option value="pending">1:심사 대기</option>
-            <option value="done">2:심사 완료</option>
+            <option value="">전체</option>
+            <option value="pending">심사 대기</option>
+            <option value="done">심사 완료</option>
           </select>
         </TField>
         <TField label="신청기간">
@@ -129,10 +129,10 @@ export function ReviewApplicationsPage() {
             value={draft.status}
             onChange={(e) => setDraft({ ...draft, status: e.target.value as Filter['status'] })}
           >
-            <option value="">0:전체</option>
-            {(Object.keys(REVIEW_STATUS_LABEL) as ReviewStatus[]).map((s, i) => (
+            <option value="">전체</option>
+            {(Object.keys(REVIEW_STATUS_LABEL) as ReviewStatus[]).map((s) => (
               <option key={s} value={s}>
-                {i + 1}:{REVIEW_STATUS_LABEL[s]}
+                {REVIEW_STATUS_LABEL[s]}
               </option>
             ))}
           </select>

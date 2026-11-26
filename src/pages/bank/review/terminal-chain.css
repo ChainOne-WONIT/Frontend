@@ -112,3 +112,20 @@
 .tc-node.is-focus small {
   color: #1f6fb8;
 }
+
+/* 표에서 검색한 기업 이름 강조 */
+.tc-hit {
+  padding: 1px 6px;
+  border: 1.5px solid #1f6fb8;
+  border-radius: 3px;
+  background: #fff4c2;
+  color: #1f6fb8;
+  font-weight: 700;
+}
+.tc-arrow {
+  margin: 0 2px;
+  color: #8aa3bd;
+}
+.tc-dir {
+  margin-left: 6px;
+}

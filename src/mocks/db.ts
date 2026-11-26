@@ -4,6 +4,8 @@ import type {
   AlertsOverview,
   BankNetworkStatus,
   CorpHome,
+  CompanyPublicDetail,
+  CompanyPublicInfo,
   Counterparty,
   CreateOrderRequest,
   FundOverview,
@@ -459,14 +461,132 @@ export function mockRequestLoan(orderId: string) {
   return mockDelay(toDetail(o));
 }
 
-const counterparties: Counterparty[] = [
-  { id: 'A', name: '에이스정밀(주)', bizNo: '124-81-20011' },
-  { id: 'C', name: '청운테크(주)', bizNo: '135-86-30022' },
-  { id: 'E', name: '동진산업(주)', bizNo: '140-81-40033' },
+/**
+ * 체인원에 가입 승인된 회원 기업(우리 회사 제외). 기업 검색에서 보이는 공개 정보만 담습니다.
+ * 발주를 낼 수 있는 기업 목록도 여기서 만듭니다.
+ */
+const directory: CompanyPublicInfo[] = [
+  {
+    id: 'A',
+    name: '에이스정밀(주)',
+    ceoName: '김정밀',
+    industry: '자동차 부품 정밀 가공',
+    bizNo: '124-81-20011',
+    establishedOn: '2012-03-15',
+    address: '경기도 안산시 단원구 신원로 55',
+    phone: '031-490-1200',
+    url: 'www.aceprecision.example',
+  },
+  {
+    id: 'C',
+    name: '청운테크(주)',
+    ceoName: '박청운',
+    industry: '표면 처리 (도금·코팅)',
+    bizNo: '135-86-30022',
+    establishedOn: '2019-06-01',
+    address: '경기도 시흥시 공단1대로 204, 3층',
+    phone: '031-499-7700',
+  },
+  {
+    id: 'E',
+    name: '동진산업(주)',
+    ceoName: '이동진',
+    industry: '강판 절단·소재 가공',
+    bizNo: '140-81-40033',
+    establishedOn: '2023-02-10',
+    address: '경기도 시흥시 엠티브이북로 30',
+    phone: '031-433-5100',
+  },
+  {
+    id: 'F',
+    name: '세진테크(주)',
+    ceoName: '한세진',
+    industry: '전장 부품',
+    bizNo: '214-81-77003',
+    establishedOn: '2015-09-01',
+    address: '충청남도 아산시 탕정면 탕정로 88',
+    phone: '041-541-2200',
+    url: 'www.sejintech.example',
+  },
+  {
+    id: 'G',
+    name: '우진정공(주)',
+    ceoName: '오우진',
+    industry: '정밀 공구·금형',
+    bizNo: '305-86-11020',
+    establishedOn: '2010-04-20',
+    address: '대구광역시 달서구 성서공단로 120',
+    phone: '053-581-3300',
+  },
+  {
+    id: 'H',
+    name: '미래모빌리티(주)',
+    ceoName: '서미래',
+    industry: '완성차 제조',
+    bizNo: '110-81-55501',
+    establishedOn: '1998-07-01',
+    address: '서울특별시 강남구 테헤란로 300',
+    phone: '02-3456-7000',
+    url: 'www.miraemobility.example',
+    stockCode: '123450',
+  },
+  {
+    id: 'I',
+    name: '대한오토(주)',
+    ceoName: '강대한',
+    industry: '완성차 제조',
+    bizNo: '107-81-30002',
+    establishedOn: '1987-11-11',
+    address: '경기도 화성시 남양읍 남양로 500',
+    phone: '031-350-1000',
+    url: 'www.daehanauto.example',
+    stockCode: '004560',
+  },
+  {
+    id: 'J',
+    name: '그린EV(주)',
+    ceoName: '윤그린',
+    industry: '전기차 제조',
+    bizNo: '220-88-61234',
+    establishedOn: '2018-01-22',
+    address: '경기도 평택시 포승읍 평택항로 77',
+    phone: '031-680-4400',
+    url: 'www.greenev.example',
+  },
 ];
+
+const counterparties: Counterparty[] = directory.map(({ id, name, bizNo }) => ({
+  id,
+  name,
+  bizNo,
+}));
 
 export function mockCounterparties() {
   return mockDelay(counterparties);
+}
+
+/** 기업 검색 — 기업명·업종·사업자등록번호로 찾기 */
+export function mockSearchCompanies(query: string) {
+  const q = query.trim().replace(/-/g, '');
+  const list = directory.filter(
+    (c) =>
+      !q || c.name.includes(q) || c.industry.includes(q) || c.bizNo.replace(/-/g, '').includes(q),
+  );
+  return mockDelay(list);
+}
+
+/** 기업 상세 — 공개 정보와, 내 발주 기록으로 센 우리 회사와의 거래 건수 */
+export function mockCompanyDetail(id: string): Promise<CompanyPublicDetail> {
+  const c = directory.find((x) => x.id === id);
+  if (!c) return Promise.reject(new ApiError('기업을 찾을 수 없습니다.', 404, 'NOT_FOUND'));
+  const mine = orders.filter((o) => o.counterpartyName === c.name);
+  return mockDelay({
+    ...c,
+    myOrders: {
+      received: mine.filter((o) => o.direction === 'received').length,
+      sent: mine.filter((o) => o.direction === 'sent').length,
+    },
+  });
 }
 
 export function mockCreateOrder(req: CreateOrderRequest) {

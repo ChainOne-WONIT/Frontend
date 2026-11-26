@@ -69,10 +69,10 @@ export function RiskAlertsPage() {
             value={draft.stage}
             onChange={(e) => setDraft({ ...draft, stage: e.target.value as '' | AlertStage })}
           >
-            <option value="">0:관심 이상 전체</option>
-            <option value="관심">1:관심</option>
-            <option value="주의">2:주의</option>
-            <option value="경보">3:경보</option>
+            <option value="">관심 이상 전체</option>
+            <option value="관심">관심</option>
+            <option value="주의">주의</option>
+            <option value="경보">경보</option>
           </select>
         </TField>
         <TField label="기업명">

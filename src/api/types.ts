@@ -168,6 +168,39 @@ export interface Counterparty {
   bizNo: string;
 }
 
+/**
+ * 기업 검색에서 다른 회원 기업에게 보여 주는 공개 정보.
+ * ERD의 Company 중 외부에 알려도 되는 항목만 담습니다.
+ * 아이디·비밀번호·가입 상태·로그인 실패 횟수·잠금 여부·영업이익·사업보고서코드·위험등급과
+ * 심사재료(CreditInfo: 연체·체납·부채 등)는 넣지 않습니다.
+ */
+export interface CompanyPublicInfo {
+  id: string;
+  /** company_name */
+  name: string;
+  /** ceo_name */
+  ceoName: string;
+  /** industry */
+  industry: string;
+  /** business_no (사업자등록번호는 공개 정보) */
+  bizNo: string;
+  /** established_on */
+  establishedOn: string;
+  /** address */
+  address: string;
+  /** phone (대표 전화) */
+  phone: string;
+  /** company_url */
+  url?: string;
+  /** stock_code (상장사만) */
+  stockCode?: string;
+}
+
+/** 기업 상세: 공개 정보 + 우리 회사와의 거래 건수 (내 발주 기록으로 계산) */
+export interface CompanyPublicDetail extends CompanyPublicInfo {
+  myOrders: { received: number; sent: number };
+}
+
 // ---------- 홈 ----------
 export interface CorpHome {
   company: { name: string; industry: string; ceoName: string; bizNo: string };
@@ -697,4 +730,23 @@ export interface RiskEvents {
   asOf: string;
   companies: string[];
   events: RiskEvent[];
+}
+
+// ---------- 은행 · 공지·규정 ----------
+export type BankRoleName = '심사' | '여신' | '운영';
+
+export interface BankNotices {
+  asOf: string;
+  /** 이 역할이 볼 공지 (전체 공지 포함) */
+  notices: {
+    id: string;
+    kind: '공지' | '규정' | '점검' | '안내';
+    title: string;
+    audience: BankRoleName[];
+    postedAt: string;
+    author: string;
+    body: string[];
+  }[];
+  /** 업무 규정 조항 */
+  rules: { no: number; title: string; body: string[] }[];
 }

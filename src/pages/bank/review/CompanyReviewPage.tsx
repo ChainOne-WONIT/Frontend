@@ -85,10 +85,10 @@ export function CompanyReviewPage() {
             value={draft.grade}
             onChange={(e) => setDraft({ ...draft, grade: e.target.value as Filter['grade'] })}
           >
-            <option value="">0:전체</option>
-            <option value="안정">1:안정</option>
-            <option value="관찰">2:관찰</option>
-            <option value="제외">3:제외</option>
+            <option value="">전체</option>
+            <option value="안정">안정</option>
+            <option value="관찰">관찰</option>
+            <option value="제외">제외</option>
           </select>
         </TField>
         <TField label="플래그">
@@ -97,10 +97,10 @@ export function CompanyReviewPage() {
             value={draft.flag}
             onChange={(e) => setDraft({ ...draft, flag: e.target.value as Filter['flag'] })}
           >
-            <option value="">0:전체</option>
-            {FLAGS.map(([k, l], i) => (
+            <option value="">전체</option>
+            {FLAGS.map(([k, l]) => (
               <option key={k} value={k}>
-                {i + 1}:{l} 있음
+                {l} 있음
               </option>
             ))}
           </select>

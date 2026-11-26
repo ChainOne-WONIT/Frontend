@@ -79,9 +79,9 @@ export function ReviewDashboardPage() {
             value={draft.kind}
             onChange={(e) => setDraft({ ...draft, kind: e.target.value as Filter['kind'] })}
           >
-            <option value="">0:전체</option>
-            <option value="REVIEW">1:심사 중</option>
-            <option value="KODIT_REVIEW">2:신보 심사 중</option>
+            <option value="">전체</option>
+            <option value="REVIEW">심사 중</option>
+            <option value="KODIT_REVIEW">신보 심사 중</option>
           </select>
         </TField>
         <TField label="신청기간">

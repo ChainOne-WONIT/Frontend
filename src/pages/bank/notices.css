@@ -1,0 +1,54 @@
+/* 공지·규정 (단말형) */
+.nt-body {
+  padding: 10px 12px;
+  border: 1px solid #b8c6d6;
+  border-top: 0;
+  background: #fbfdff;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.nt-body p + p {
+  margin-top: 6px;
+}
+.nt-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.nt-toc a {
+  padding: 2px 8px;
+  border: 1px solid #b8c6d6;
+  border-radius: 3px;
+  background: #fff;
+  color: #13345a;
+  font-size: 10px;
+  text-decoration: none;
+}
+.nt-toc a:hover {
+  background: #eef4fb;
+}
+.nt-rules {
+  border: 1px solid #b8c6d6;
+}
+.nt-rule {
+  padding: 8px 12px;
+  border-bottom: 1px solid #d5dee8;
+  font-size: 12px;
+  line-height: 1.65;
+  scroll-margin-top: 8px;
+}
+.nt-rule:last-child {
+  border-bottom: 0;
+}
+.nt-rule:nth-child(even) {
+  background: #f6f9fc;
+}
+.nt-rule h3 {
+  margin-bottom: 2px;
+  color: #13345a;
+  font-size: 12px;
+  font-weight: 700;
+}
+.nt-rule:target {
+  background: #fff4c2;
+}

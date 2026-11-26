@@ -293,9 +293,9 @@ export function TReasonWindow<R extends string>({
                     value={reason}
                     onChange={(e) => setReason(e.target.value as R)}
                   >
-                    {reasons.map((r, i) => (
+                    {reasons.map((r) => (
                       <option key={r} value={r}>
-                        {i + 1}:{r}
+                        {r}
                       </option>
                     ))}
                   </select>

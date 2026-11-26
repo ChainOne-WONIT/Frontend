@@ -1,6 +1,8 @@
 import { request, USE_MOCK } from './client';
 import type {
   AlertsOverview,
+  CompanyPublicDetail,
+  CompanyPublicInfo,
   CorpHome,
   Counterparty,
   CreateOrderRequest,
@@ -88,4 +90,16 @@ export function getMyInfo(): Promise<MyInfo> {
 export function updateConsent(key: string, agreed: boolean): Promise<MyInfo> {
   if (USE_MOCK) return mock.mockUpdateConsent(key, agreed);
   return request('PATCH', `/api/corp/me/consents/${key}`, { agreed });
+}
+
+/** 기업 검색 (공개 정보) — GET /api/companies?query= */
+export function searchCompanies(query: string): Promise<CompanyPublicInfo[]> {
+  if (USE_MOCK) return mock.mockSearchCompanies(query);
+  return request('GET', `/api/companies?query=${encodeURIComponent(query)}`);
+}
+
+/** 기업 공개 정보 상세 — GET /api/companies/{id} */
+export function getCompanyDetail(id: string): Promise<CompanyPublicDetail> {
+  if (USE_MOCK) return mock.mockCompanyDetail(id);
+  return request('GET', `/api/companies/${encodeURIComponent(id)}`);
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { getOrders } from '../../api/corp';
 import type { OrderDirection, OrderStatus } from '../../api/types';
@@ -6,6 +7,7 @@ import { ErrorBox, Loading, Note, StatusPill } from '../../components/ui';
 import { PageHead } from '../../layouts/CorpLayout';
 import { won } from '../../lib/format';
 import { useAsync } from '../../lib/useAsync';
+import { CompanySearchModal } from './CompanySearchModal';
 
 const DONE: OrderStatus[] = ['COMPLETED', 'REJECTED', 'CANCELED'];
 type Filter = 'all' | 'open' | 'done';
@@ -16,6 +18,7 @@ export function OrdersPage() {
   const tab: OrderDirection = params.get('tab') === 'sent' ? 'sent' : 'received';
   const filter = (params.get('filter') as Filter) || 'all';
   const { data, error, loading, reload } = useAsync(() => getOrders(), []);
+  const [searching, setSearching] = useState(false);
 
   const setParam = (k: string, v: string) => {
     const next = new URLSearchParams(params);
@@ -42,13 +45,9 @@ export function OrdersPage() {
         title="발주"
         sub="받은 발주는 수락하거나 반려하고, 낸 발주는 진행 상황을 확인합니다."
         right={
-          <button
-            type="button"
-            className="btn btn--primary"
-            onClick={() => navigate('/corp/orders/new')}
-          >
-            <Icon name="plus" size={18} />
-            발주 등록
+          <button type="button" className="btn btn--primary" onClick={() => setSearching(true)}>
+            <Icon name="search" size={18} />
+            기업 검색
           </button>
         }
       />
@@ -147,6 +146,12 @@ export function OrdersPage() {
       <Note>
         수락된 발주만 생산자금 신청의 근거가 됩니다. 수락 전 발주는 내는 기업이 취소할 수 있습니다.
       </Note>
+      {searching && (
+        <CompanySearchModal
+          onClose={() => setSearching(false)}
+          onOrder={(c) => navigate('/corp/orders/new', { state: { receiverId: c.id } })}
+        />
+      )}
     </>
   );
 }

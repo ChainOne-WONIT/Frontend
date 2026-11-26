@@ -27,6 +27,7 @@ import { CompanyReviewPage } from './pages/bank/review/CompanyReviewPage';
 import { ReviewApplicationsPage } from './pages/bank/review/ReviewApplicationsPage';
 import { ReviewDashboardPage } from './pages/bank/review/ReviewDashboardPage';
 import { ReviewDetailPage } from './pages/bank/review/ReviewDetailPage';
+import { NoticesPage } from './pages/bank/NoticesPage';
 import { LoginPage } from './pages/login/LoginPage';
 import { SignupPage } from './pages/signup/SignupPage';
 
@@ -78,7 +79,9 @@ export default function App() {
         <Route path="applications" element={<ReviewApplicationsPage />} />
         <Route path="applications/:id" element={<ReviewDetailPage />} />
         <Route path="companies" element={<CompanyReviewPage />} />
-        <Route path="chain" element={<TerminalChainPage />} />
+        <Route path="chain" element={<TerminalChainPage view="chains" />} />
+        <Route path="chain-loans" element={<TerminalChainPage view="loans" />} />
+        <Route path="notices" element={<NoticesPage />} />
       </Route>
       <Route
         path="/bank/loan"
@@ -95,6 +98,7 @@ export default function App() {
         <Route path="alerts/:id" element={<AlertDetailPage />} />
         <Route path="events" element={<EventsPage />} />
         <Route path="chain" element={<TerminalChainPage />} />
+        <Route path="notices" element={<NoticesPage />} />
       </Route>
       <Route
         path="/bank/ops"
@@ -109,6 +113,7 @@ export default function App() {
         <Route path="signups/:id" element={<SignupDetailPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="logs" element={<AuditLogPage />} />
+        <Route path="notices" element={<NoticesPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
