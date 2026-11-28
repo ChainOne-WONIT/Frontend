@@ -41,7 +41,9 @@ const EMPTY: Filter = { scope: '', status: '', from: '2026-08-01', to: '', name:
 /** [R0210] 한도 신청 심사 (단말형) */
 export function ReviewApplicationsPage() {
   const navigate = useNavigate();
-  const { data, error, loading, reload } = useAsync(getReviewApplications, []);
+  const { data, error, loading, reload } = useAsync(getReviewApplications, [], {
+    refreshOnChange: true,
+  });
   const [draft, setDraft] = useState<Filter>(EMPTY);
   const [filter, setFilter] = useState<Filter>(EMPTY);
   const [selected, setSelected] = useState<string | null>(null);

@@ -771,6 +771,11 @@ export function mockChains(q: ChainQuery = {}): Promise<ChainView> {
   return mockDelay({ asOf: AS_OF, companies, chains: list });
 }
 
+/** 은행 공통 집계 (단말 메뉴의 대기 건수) */
+export function mockBankSummary(): Promise<BankSummary> {
+  return mockDelay(bankSummary());
+}
+
 /** 단말 오른쪽 알림메시지: 최근 처리·조회 기록에서 만듭니다. */
 export function mockBankMessages(): Promise<BankMessages> {
   return mockDelay({

@@ -125,6 +125,7 @@ npm run dev            # http://localhost:5173
 | GET    | `/api/alerts`                                               | 거래처 경보                                                                                                                     |
 | GET    | `/api/corp/me`                                              | 내 정보                                                                                                                         |
 | PATCH  | `/api/corp/me/consents/{key}`                               | 선택 동의 변경                                                                                                                  |
+| GET    | `/api/bank/summary`                                         | 은행 공통 집계 (단말 메뉴의 심사·승인·가입 대기 건수)                                                                           |
 | GET    | `/api/bank/review/dashboard`                                | 심사 대시보드                                                                                                                   |
 | GET    | `/api/bank/review/applications`                             | 한도 신청 목록                                                                                                                  |
 | GET    | `/api/bank/review/applications/{id}?reason=`                | 한도 신청 상세 (조회 사유 기록)                                                                                                 |

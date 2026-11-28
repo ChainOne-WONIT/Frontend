@@ -20,7 +20,7 @@ const eok = (n: number) => (n / 1e8).toFixed(1);
 /** [O0100] 운영 대시보드 (단말형) */
 export function OpsDashboardPage() {
   const navigate = useNavigate();
-  const { data, error, loading, reload } = useAsync(getOpsDashboard, []);
+  const { data, error, loading, reload } = useAsync(getOpsDashboard, [], { refreshOnChange: true });
   const [selected, setSelected] = useState<string | null>(null);
   const [target, setTarget] = useState<SignupApplication | null>(null);
   const sel = data?.pendingSignups.find((s) => s.id === selected) ?? data?.pendingSignups[0];

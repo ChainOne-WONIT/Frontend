@@ -1,6 +1,7 @@
 import { request, USE_MOCK } from './client';
 import type {
   BankMessages,
+  BankSummary,
   MyActivity,
   ChainQuery,
   ChainView,
@@ -86,6 +87,12 @@ export function getChains(q: ChainQuery = {}): Promise<ChainView> {
   if (q.tier) params.set('tier', q.tier);
   const qs = params.toString();
   return request('GET', `/api/bank/chains${qs ? `?${qs}` : ''}`);
+}
+
+/** 은행 공통 집계 (심사·승인·가입 대기 건수) — GET /api/bank/summary */
+export function getBankSummary(): Promise<BankSummary> {
+  if (USE_MOCK) return mock.mockBankSummary();
+  return request('GET', '/api/bank/summary');
 }
 
 /** 단말 알림메시지 — GET /api/bank/messages */

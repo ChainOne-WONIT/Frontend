@@ -26,7 +26,7 @@ const EMPTY: Filter = { status: '', flag: '', name: '' };
 /** [L0210] 승인 대기 (단말형). 아직 실행하지 않은 신청(승인 대기·보류)을 모아 봅니다. */
 export function LoanPendingPage() {
   const navigate = useNavigate();
-  const { data, error, loading, reload } = useAsync(getLoans, []);
+  const { data, error, loading, reload } = useAsync(getLoans, [], { refreshOnChange: true });
   const [draft, setDraft] = useState<Filter>(EMPTY);
   const [filter, setFilter] = useState<Filter>(EMPTY);
   const [selected, setSelected] = useState<string | null>(null);

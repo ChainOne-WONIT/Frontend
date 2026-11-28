@@ -28,7 +28,7 @@ function daysLate(asOf: string, due: string) {
 /** [L0240] 대금 지급 지연 (단말형). 받는 기업이 "받지 못함"을 누른 발주를 봅니다. */
 export function PaymentDelaysPage() {
   const navigate = useNavigate();
-  const { data, error, loading, reload } = useAsync(getLoans, []);
+  const { data, error, loading, reload } = useAsync(getLoans, [], { refreshOnChange: true });
   const [draft, setDraft] = useState('');
   const [name, setName] = useState('');
   const [selected, setSelected] = useState<string | null>(null);

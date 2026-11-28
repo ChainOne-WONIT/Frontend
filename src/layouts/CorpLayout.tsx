@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import logoMark from '../assets/logo-mark.svg';
+import { CorpBell } from '../components/CorpBell';
 import { Icon, type IconName } from '../components/Icon';
 import { useAuth } from '../lib/auth-context';
 import './CorpLayout.css';
@@ -50,10 +51,7 @@ export function CorpLayout() {
           <span className="topbar__sep" />
           <b className="topbar__title">{title}</b>
           <span className="spacer" />
-          <span className="topbar__bell" aria-label="알림 3건">
-            <Icon name="bell" size={20} />
-            <span className="topbar__count">3</span>
-          </span>
+          <CorpBell className="topbar__bell" />
           <span className="topbar__user">
             <span className="topbar__avatar">{user?.companyName.slice(0, 1)}</span>
             <span>

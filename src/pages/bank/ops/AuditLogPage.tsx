@@ -29,6 +29,7 @@ export function AuditLogPage() {
   const { data, error, loading, reload } = useAsync(
     () => getAuditLogs(query),
     [query.from, query.to, query.actor, query.kind],
+    { refreshOnChange: true },
   );
   const set = (patch: AuditQuery) => setDraft((d) => ({ ...d, ...patch }));
 

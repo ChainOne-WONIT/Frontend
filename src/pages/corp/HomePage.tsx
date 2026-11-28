@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { getHome } from '../../api/corp';
 import type { OrderSummary } from '../../api/types';
 import logoMark from '../../assets/logo-mark.svg';
+import { CorpBell } from '../../components/CorpBell';
 import { Icon } from '../../components/Icon';
 import { ErrorBox, Loading, StatusPill } from '../../components/ui';
 import { useAuth } from '../../lib/auth-context';
@@ -56,10 +57,7 @@ export function HomePage() {
             </span>
             <span className="spacer" />
             <span className="hero__date">{dot(data.asOf)} 기준</span>
-            <span className="hero__bell" aria-label="알림 3건">
-              <Icon name="bell" size={20} />
-              <i>3</i>
-            </span>
+            <CorpBell className="hero__bell" />
             <span className="hero__me">
               <span>{user?.companyName.slice(0, 1)}</span>
               {user?.companyName}
@@ -104,14 +102,17 @@ export function HomePage() {
             </div>
 
             <div className="hero__cards">
-              <button type="button" onClick={() => navigate('/corp/orders?tab=received')}>
-                <span>받은 발주 · 수락 대기</span>
-                <b>{s.receivedPending}건</b>
+              <button type="button" onClick={() => navigate('/corp/me')}>
+                <span>내 정보</span>
+                <small>기업 정보 · 정보 제공 동의 · 계정</small>
               </button>
-              <button type="button" onClick={() => navigate('/corp/orders?tab=sent')}>
+              {/* 발주 화면의 작업중 탭과 같은 기준: 받은 발주 수락 + 낸 발주 수령 확인·대금 지급 등록 */}
+              <button type="button" onClick={() => navigate('/corp/orders?tab=working')}>
                 <span>내가 할 일</span>
-                <b>{s.sentTodo}건</b>
-                <small>{s.sentTodoDetail}</small>
+                <b>{s.receivedPending + s.sentTodo}건</b>
+                <small>
+                  수락 {s.receivedPending}건 · {s.sentTodoDetail}
+                </small>
               </button>
               <button type="button" className="is-alert" onClick={() => navigate('/corp/alerts')}>
                 <span>거래처 경보</span>

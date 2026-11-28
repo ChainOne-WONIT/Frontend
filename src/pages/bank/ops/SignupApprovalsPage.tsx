@@ -20,7 +20,9 @@ import { SignupReasonWindow } from './OpsReason';
 
 /** [O0210] 기업 가입 승인 (단말형) */
 export function SignupApprovalsPage() {
-  const { data, error, loading, reload, setData } = useAsync(getSignupApprovals, []);
+  const { data, error, loading, reload, setData } = useAsync(getSignupApprovals, [], {
+    refreshOnChange: true,
+  });
   const [nameDraft, setNameDraft] = useState('');
   const [name, setName] = useState('');
   const [selected, setSelected] = useState<string | null>(null);

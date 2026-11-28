@@ -1,5 +1,5 @@
 /* 은행 단말 화면 틀의 역할별 설정: 화면 번호, 바로가기, 메뉴 트리, 기능키 도움말 */
-import type { BankRole, BankRoleName } from '../api/types';
+import type { BankRole, BankRoleName, BankSummary } from '../api/types';
 import type { IconName } from '../components/Icon';
 
 export type TerminalScreen = { code: string; title: string; path: string; match: RegExp };
@@ -20,6 +20,8 @@ export type TreeItem = {
   group?: boolean;
   /** to가 없는 항목: 이 주소일 때 파랗게 표시 */
   match?: RegExp;
+  /** 메뉴 이름 뒤에 붙일 대기 건수, 예: "승인 대기(3)" */
+  count?: keyof BankSummary['counts'];
 };
 
 export interface TerminalRole {
@@ -103,7 +105,13 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
     tree: [
       { label: '대시보드', depth: 0, to: '/bank/review', end: true },
       { label: '심사', depth: 0, group: true },
-      { label: '한도 신청 심사', depth: 1, to: '/bank/review/applications', end: true },
+      {
+        label: '한도 신청 심사',
+        depth: 1,
+        to: '/bank/review/applications',
+        end: true,
+        count: 'reviewPending',
+      },
       { label: '심사 상세', depth: 2, match: /^\/bank\/review\/applications\/.+/ },
       { label: '기업', depth: 0, group: true },
       { label: '기업 심사 정보', depth: 1, to: '/bank/review/companies', end: true },
@@ -218,7 +226,7 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
     tree: [
       { label: '대시보드', depth: 0, to: '/bank/loan', end: true },
       { label: '여신', depth: 0, group: true },
-      { label: '승인 대기', depth: 1, to: '/bank/loan/pending' },
+      { label: '승인 대기', depth: 1, to: '/bank/loan/pending', count: 'loanPending' },
       { label: '대출 현황', depth: 1, to: '/bank/loan/loans', end: true },
       { label: '대출 상세', depth: 2, match: /^\/bank\/loan\/loans\/.+/ },
       { label: '대금 지급 지연', depth: 1, to: '/bank/loan/delays' },
@@ -288,11 +296,18 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
     tree: [
       { label: '대시보드', depth: 0, to: '/bank/ops', end: true },
       { label: '운영 업무', depth: 0, group: true },
-      { label: '기업 가입 승인', depth: 1, to: '/bank/ops/signups', end: true },
-      { label: '가입 신청 상세 (조회 사유)', depth: 2, match: /^\/bank\/ops\/signups\/.+/ },
+      {
+        label: '기업 가입 승인',
+        depth: 1,
+        to: '/bank/ops/signups',
+        end: true,
+        count: 'signupPending',
+      },
+      { label: '가입 신청 상세', depth: 2, match: /^\/bank\/ops\/signups\/.+/ },
       { label: '설정', depth: 0, group: true },
       { label: '설정값 관리', depth: 1, to: '/bank/ops/settings' },
-      { label: '심사·여신 현황', depth: 0, group: true },
+      { label: '기록', depth: 0, group: true },
+      { label: '처리·조회 기록', depth: 1, to: '/bank/ops/logs' },
       { label: '공지·규정', depth: 0, to: '/bank/ops/notices' },
     ],
     help: [

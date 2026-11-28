@@ -1,0 +1,32 @@
+/* 발주 목록: 거래 기업 검색 */
+.orders-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.orders-search__input {
+  position: relative;
+  display: block;
+  flex: 0 1 360px;
+  min-width: 0;
+}
+.orders-search__input > svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  color: var(--sub);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.orders-search__input .input {
+  width: 100%;
+  padding-left: 42px;
+}
+.orders-search__status {
+  flex: 0 0 200px;
+}
+.orders-search__status .input {
+  width: 100%;
+}

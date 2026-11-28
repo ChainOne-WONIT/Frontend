@@ -35,7 +35,9 @@ const EMPTY: Filter = { kind: '', from: '2026-11-01', to: '', name: '' };
 /** [R0100] 심사 대시보드 (단말형) */
 export function ReviewDashboardPage() {
   const navigate = useNavigate();
-  const { data, error, loading, reload } = useAsync(getReviewDashboard, []);
+  const { data, error, loading, reload } = useAsync(getReviewDashboard, [], {
+    refreshOnChange: true,
+  });
   const [draft, setDraft] = useState<Filter>(EMPTY);
   const [filter, setFilter] = useState<Filter>(EMPTY);
   const [selected, setSelected] = useState<string | null>(null);

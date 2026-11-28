@@ -29,7 +29,7 @@ const EMPTY: Filter = { status: '', name: '' };
 /** [L0220] 대출 현황 (단말형). 실행된 생산자금 대출의 실행·만기·상환 상태를 봅니다. */
 export function LoansPage() {
   const navigate = useNavigate();
-  const { data, error, loading, reload } = useAsync(getLoans, []);
+  const { data, error, loading, reload } = useAsync(getLoans, [], { refreshOnChange: true });
   const [draft, setDraft] = useState<Filter>(EMPTY);
   const [filter, setFilter] = useState<Filter>(EMPTY);
   const [selected, setSelected] = useState<string | null>(null);

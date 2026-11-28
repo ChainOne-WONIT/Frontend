@@ -21,7 +21,11 @@ export function SignupReasonWindow({
         { label: '대상', value: `${app.companyName} · ${app.loginId}` },
       ]}
       onClose={onClose}
-      onOpen={(reason) => navigate(`/bank/ops/signups/${app.id}`, { state: { reason } })}
+      onOpen={(reason) => {
+        // 탭은 화면을 살려 두므로, 창을 먼저 닫아야 목록으로 돌아왔을 때 창이 다시 뜨지 않습니다.
+        onClose();
+        navigate(`/bank/ops/signups/${app.id}`, { state: { reason } });
+      }}
     />
   );
 }

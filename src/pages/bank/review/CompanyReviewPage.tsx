@@ -35,7 +35,9 @@ const EMPTY: Filter = { name: '', grade: '', flag: '' };
 /** [R0310] 기업 심사 정보: 검색 + 기업별 심사 정보. [수정]을 누르면 수정 창이 뜹니다. */
 export function CompanyReviewPage() {
   const navigate = useNavigate();
-  const { data, error, loading, reload, setData } = useAsync(getCompanyReviews, []);
+  const { data, error, loading, reload, setData } = useAsync(getCompanyReviews, [], {
+    refreshOnChange: true,
+  });
   const [draft, setDraft] = useState<Filter>(EMPTY);
   const [filter, setFilter] = useState<Filter>(EMPTY);
   const [editId, setEditId] = useState<string | null>(null);

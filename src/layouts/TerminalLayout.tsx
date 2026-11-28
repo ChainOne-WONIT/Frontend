@@ -16,7 +16,8 @@ import {
   type FavScreen,
 } from '../lib/favorites';
 import { ScreenActiveContext } from '../lib/screen-active';
-import { getBankMessages, getMyActivity } from '../api/bank';
+import { getBankMessages, getBankSummary, getMyActivity } from '../api/bank';
+import type { BankSummary } from '../api/types';
 import { Icon } from '../components/Icon';
 import { TWindow } from '../components/terminal';
 import { CalculatorPanel, MemoPanel } from '../components/TerminalTools';
@@ -123,6 +124,12 @@ export function TerminalLayout() {
   }, []);
 
   const msgs = useAsync(getBankMessages, [pathname]);
+  // 메뉴 이름 뒤 대기 건수. 화면을 옮기거나 처리하면 새로 불러옵니다.
+  const summary = useAsync(getBankSummary, [pathname]);
+  const treeLabel = (label: string, count?: keyof BankSummary['counts']) => {
+    const n = count ? summary.data?.counts[count] : undefined;
+    return n === undefined ? label : `${label}(${n})`;
+  };
   // 로그인한 뒤 내가 한 처리·조회. 화면을 옮길 때마다 새로 불러옵니다.
   const since = loginAt ?? clock().slice(0, 10) + ' 00:00';
   const activity = useAsync(
@@ -165,14 +172,16 @@ export function TerminalLayout() {
   // 처리(확정·저장 등)를 하면 처리 기록과 알림을 바로 새로 불러옵니다.
   const reloadActivity = activity.reload;
   const reloadMsgs = msgs.reload;
+  const reloadSummary = summary.reload;
   useEffect(() => {
     const on = () => {
       reloadActivity();
       reloadMsgs();
+      reloadSummary();
     };
     window.addEventListener(DATA_CHANGED, on);
     return () => window.removeEventListener(DATA_CHANGED, on);
-  }, [reloadActivity, reloadMsgs]);
+  }, [reloadActivity, reloadMsgs, reloadSummary]);
 
   const logout = async () => {
     await signOut();
@@ -354,7 +363,7 @@ export function TerminalLayout() {
                       end={t.end}
                       className={`tm-tree__link${t.depth === 0 ? ' tm-tree__link--top' : ''}`}
                     >
-                      {t.depth === 0 ? '■' : '·'} {t.label}
+                      {t.depth === 0 ? '■' : '·'} {treeLabel(t.label, t.count)}
                     </NavLink>
                   </li>
                 ) : (

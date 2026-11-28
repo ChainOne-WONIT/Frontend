@@ -37,7 +37,7 @@ type RiskAlertsWeights = {
 /** [L0310] 리스크 경보 (단말형) */
 export function RiskAlertsPage() {
   const navigate = useNavigate();
-  const { data, error, loading, reload } = useAsync(getRiskAlerts, []);
+  const { data, error, loading, reload } = useAsync(getRiskAlerts, [], { refreshOnChange: true });
   const [draft, setDraft] = useState<{ stage: '' | AlertStage; name: string }>({
     stage: '',
     name: '',

@@ -25,7 +25,9 @@ type Target = { kind: 'loan'; loan: LoanRow } | { kind: 'alert'; alert: RiskAler
 /** [L0100] 여신 대시보드 (단말형) */
 export function LoanDashboardPage() {
   const navigate = useNavigate();
-  const { data, error, loading, reload } = useAsync(getLoanDashboard, []);
+  const { data, error, loading, reload } = useAsync(getLoanDashboard, [], {
+    refreshOnChange: true,
+  });
   const [nameDraft, setNameDraft] = useState('');
   const [name, setName] = useState('');
   const [selected, setSelected] = useState<string | null>(null);

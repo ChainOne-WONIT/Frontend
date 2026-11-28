@@ -185,6 +185,8 @@
   font-size: 26px;
 }
 .hero__cards small {
+  /* 큰 숫자(b)가 없는 카드에서도 설명은 제목 아래 왼쪽에 둡니다 */
+  grid-column: 1;
   font-size: 12px;
   color: #b5d4f4;
 }
