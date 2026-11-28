@@ -65,12 +65,15 @@ npm run dev            # http://localhost:5173
 | `/bank/ops/settings`              | 설정값 관리 (등급 기준·경보 가중치·경보 단계)               |
 | `/bank/ops/logs`                  | 처리·조회 기록 (열람만)                                     |
 | `/bank/loan`                      | 여신 대시보드                                               |
-| `/bank/loan/loans`                | 생산자금 대출 (승인 대기·대출 현황·대금 지급 지연)          |
+| `/bank/loan/pending`              | 승인 대기 (승인 대기·보류 신청, 확인 항목)                  |
+| `/bank/loan/loans`                | 대출 현황 (실행·연체·상환 완료, 대출 잔액)                  |
 | `/bank/loan/loans/:id`            | 대출 상세 (조회 사유를 고른 뒤 열림, 승인하고 실행·보류)    |
+| `/bank/loan/delays`               | 대금 지급 지연 (지연 일수, 받는 기업의 대출)                |
 | `/bank/loan/alerts`               | 리스크 경보                                                 |
 | `/bank/loan/alerts/:id`           | 경보 상세 (점수와 신호·조치 기록·전이 계산)                 |
 | `/bank/loan/events`               | 이벤트 신호 등록 (체납·신용등급 하락·부도·회생 신청·휴폐업) |
 | `/bank/loan/chain`                | 발주 체인 조회 (심사와 같은 화면)                           |
+| `/bank/loan/chain-loans`          | 체인 대출 현황 (심사와 같은 화면)                           |
 | `/bank/{review,loan,ops}/notices` | 공지·규정 (역할별 공지와 업무 규정)                         |
 
 은행 화면은 심사·여신·운영 담당 모두 만들었습니다.

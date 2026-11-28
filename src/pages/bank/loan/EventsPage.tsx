@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import { cancelEvent, getRiskEvents, registerEvent } from '../../../api/loan';
 import type { RiskEvents, RiskEventType } from '../../../api/types';
 import {
@@ -11,7 +10,6 @@ import {
   TTitle,
   TWarn,
 } from '../../../components/terminal';
-import { downloadCsv } from '../../../lib/csv';
 import { useAsync } from '../../../lib/useAsync';
 
 const TYPES: RiskEventType[] = ['체납', '신용등급 하락', '부도', '회생 신청', '휴·폐업'];
@@ -43,7 +41,6 @@ export function EventsPage() {
 }
 
 function EventsBody({ data, onChange }: { data: RiskEvents; onChange: (d: RiskEvents) => void }) {
-  const navigate = useNavigate();
   const [companyName, setCompanyName] = useState(data.companies[0] ?? '');
   const [type, setType] = useState<RiskEventType>('체납');
   const [occurredAt, setOccurredAt] = useState(todayStr);
@@ -152,6 +149,9 @@ function EventsBody({ data, onChange }: { data: RiskEvents; onChange: (d: RiskEv
           ],
         ]}
       />
+      <TFKeys
+        keys={[{ label: '등록', fkey: 'F7', kind: 'primary', disabled: busy, onClick: register }]}
+      />
       <TWarn>
         부도, 회생 신청, 휴·폐업은 점수와 관계없이 바로 경보가 됩니다. 체납과 신용등급 하락은 이벤트
         점수가 더해집니다.
@@ -211,28 +211,6 @@ function EventsBody({ data, onChange }: { data: RiskEvents; onChange: (d: RiskEv
           ))}
         </tbody>
       </table>
-
-      <TFKeys
-        keys={[
-          { label: '리스크 경보', fkey: 'F5', onClick: () => navigate('/bank/loan/alerts') },
-          {
-            label: '엑셀 저장',
-            fkey: 'F9',
-            onClick: () =>
-              downloadCsv('이벤트신호.csv', [
-                ['기업', '이벤트', '발생일', '등록자', '상태'],
-                ...data.events.map((e) => [
-                  e.companyName,
-                  e.type + (e.detail ? ` (${e.detail})` : ''),
-                  e.occurredAt,
-                  e.registeredBy,
-                  e.cancelled ? '취소됨' : '등록',
-                ]),
-              ]),
-          },
-          { label: '등록', fkey: 'F7', kind: 'primary', disabled: busy, onClick: register },
-        ]}
-      />
     </>
   );
 }

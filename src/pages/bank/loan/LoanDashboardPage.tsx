@@ -44,8 +44,8 @@ export function LoanDashboardPage() {
         title="여신 대시보드 (여신역)"
         asOf={data?.asOf}
         right={
-          <button type="button" className="tb" onClick={() => navigate('/bank/loan/loans')}>
-            전체 대출
+          <button type="button" className="tb" onClick={() => navigate('/bank/loan/pending')}>
+            승인 대기 전체
           </button>
         }
       />

@@ -3,7 +3,15 @@ import type { BankRole, BankRoleName } from '../api/types';
 import type { IconName } from '../components/Icon';
 
 export type TerminalScreen = { code: string; title: string; path: string; match: RegExp };
-export type RailLink = { label: string; to: string; icon: IconName; end?: boolean; hint: string };
+export type RailLink = {
+  label: string;
+  to: string;
+  icon: IconName;
+  end?: boolean;
+  hint: string;
+  /** 여러 화면을 묶은 바로가기: 이 주소들에서도 켜진 것으로 표시 */
+  match?: RegExp;
+};
 export type TreeItem = {
   label: string;
   depth: number;
@@ -123,16 +131,28 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
     screens: [
       { code: 'L0100', title: '대시보드', path: '/bank/loan', match: /^\/bank\/loan\/?$/ },
       {
-        code: 'L0220',
+        code: 'L0210',
+        title: '승인 대기',
+        path: '/bank/loan/pending',
+        match: /^\/bank\/loan\/pending/,
+      },
+      {
+        code: 'L0230',
         title: '대출 상세',
         path: '/bank/loan/loans',
         match: /^\/bank\/loan\/loans\/.+/,
       },
       {
-        code: 'L0210',
-        title: '생산자금 대출',
+        code: 'L0220',
+        title: '대출 현황',
         path: '/bank/loan/loans',
         match: /^\/bank\/loan\/loans\/?$/,
+      },
+      {
+        code: 'L0240',
+        title: '대금 지급 지연',
+        path: '/bank/loan/delays',
+        match: /^\/bank\/loan\/delays/,
       },
       {
         code: 'L0320',
@@ -153,6 +173,12 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
         match: /^\/bank\/loan\/events/,
       },
       {
+        code: 'L0510',
+        title: '체인 대출 현황',
+        path: '/bank/loan/chain-loans',
+        match: /^\/bank\/loan\/chain-loans/,
+      },
+      {
         code: 'L0500',
         title: '발주 체인 조회',
         path: '/bank/loan/chain',
@@ -167,31 +193,50 @@ export const TERMINAL_ROLES: Record<BankRole, TerminalRole> = {
     ],
     rail: [
       { label: '업무', to: '/bank/loan', icon: 'grid', end: true, hint: '여신 대시보드' },
-      { label: '대출', to: '/bank/loan/loans', icon: 'bank', hint: '생산자금 대출 (F4)' },
-      { label: '경보', to: '/bank/loan/alerts', icon: 'alert', hint: '리스크 경보 (F5)' },
-      { label: '이벤트', to: '/bank/loan/events', icon: 'flag', hint: '이벤트 신호 등록' },
-      { label: '체인', to: '/bank/loan/chain', icon: 'link', hint: '발주 체인 조회 (F6)' },
+      {
+        label: '여신',
+        to: '/bank/loan/pending',
+        icon: 'bank',
+        hint: '승인 대기 · 대출 현황 · 대금 지급 지연',
+        match: /^\/bank\/loan\/(pending|loans|delays)/,
+      },
+      {
+        label: '리스크',
+        to: '/bank/loan/alerts',
+        icon: 'alert',
+        hint: '리스크 경보 (F5) · 이벤트 신호 등록',
+        match: /^\/bank\/loan\/(alerts|events)/,
+      },
+      {
+        label: '체인',
+        to: '/bank/loan/chain',
+        icon: 'link',
+        hint: '발주 체인 조회 · 체인 대출 현황',
+        match: /^\/bank\/loan\/chain/,
+      },
     ],
     tree: [
       { label: '대시보드', depth: 0, to: '/bank/loan', end: true },
-      { label: '여신 업무', depth: 0, group: true },
-      { label: '생산자금 대출', depth: 1, to: '/bank/loan/loans', end: true },
-      { label: '대출 상세 (조회 사유)', depth: 2, match: /^\/bank\/loan\/loans\/.+/ },
+      { label: '여신', depth: 0, group: true },
+      { label: '승인 대기', depth: 1, to: '/bank/loan/pending' },
+      { label: '대출 현황', depth: 1, to: '/bank/loan/loans', end: true },
+      { label: '대출 상세', depth: 2, match: /^\/bank\/loan\/loans\/.+/ },
+      { label: '대금 지급 지연', depth: 1, to: '/bank/loan/delays' },
       { label: '리스크', depth: 0, group: true },
       { label: '리스크 경보', depth: 1, to: '/bank/loan/alerts', end: true },
-      { label: '경보 상세 (조회 사유)', depth: 2, match: /^\/bank\/loan\/alerts\/.+/ },
+      { label: '경보 상세', depth: 2, match: /^\/bank\/loan\/alerts\/.+/ },
       { label: '이벤트 신호 등록', depth: 1, to: '/bank/loan/events' },
       { label: '체인', depth: 0, group: true },
       { label: '발주 체인 조회', depth: 1, to: '/bank/loan/chain' },
-      { label: '심사 연계', depth: 0, group: true },
+      { label: '체인 대출 현황', depth: 1, to: '/bank/loan/chain-loans' },
       { label: '공지·규정', depth: 0, to: '/bank/loan/notices' },
     ],
     help: [
       ['F2', '조회 (툴바 [조회]와 같음)'],
       ['F3', '목록으로 (대출·경보 상세)'],
-      ['F4', '상세 조회 / 생산자금 대출'],
-      ['F5', '리스크 경보'],
-      ['F6', '발주 체인 조회 / 이벤트 신호 등록'],
+      ['F4', '상세 조회 / 대출 현황'],
+      ['F5', '리스크 경보 (승인 대기에서는 대출 현황)'],
+      ['F6', '발주 체인 조회 / 체인 대출 현황 (체인 화면끼리 오가기)'],
       ['F7', '승인하고 실행 · 이벤트 등록'],
       ['F8', '보류'],
       ...COMMON_TAIL,

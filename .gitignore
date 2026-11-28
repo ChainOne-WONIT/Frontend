@@ -28,3 +28,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Claude 작업 안내 (개인용)
+CLAUDE.md

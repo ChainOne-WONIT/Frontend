@@ -15,7 +15,9 @@ import { AlertDetailPage } from './pages/bank/loan/AlertDetailPage';
 import { EventsPage } from './pages/bank/loan/EventsPage';
 import { LoanDashboardPage } from './pages/bank/loan/LoanDashboardPage';
 import { LoanDetailPage } from './pages/bank/loan/LoanDetailPage';
+import { LoanPendingPage } from './pages/bank/loan/LoanPendingPage';
 import { LoansPage } from './pages/bank/loan/LoansPage';
+import { PaymentDelaysPage } from './pages/bank/loan/PaymentDelaysPage';
 import { RiskAlertsPage } from './pages/bank/loan/RiskAlertsPage';
 import { AuditLogPage } from './pages/bank/ops/AuditLogPage';
 import { OpsDashboardPage } from './pages/bank/ops/OpsDashboardPage';
@@ -94,12 +96,15 @@ export default function App() {
         }
       >
         <Route index element={<LoanDashboardPage />} />
+        <Route path="pending" element={<LoanPendingPage />} />
         <Route path="loans" element={<LoansPage />} />
         <Route path="loans/:id" element={<LoanDetailPage />} />
+        <Route path="delays" element={<PaymentDelaysPage />} />
         <Route path="alerts" element={<RiskAlertsPage />} />
         <Route path="alerts/:id" element={<AlertDetailPage />} />
         <Route path="events" element={<EventsPage />} />
-        <Route path="chain" element={<TerminalChainPage />} />
+        <Route path="chain" element={<TerminalChainPage view="chains" />} />
+        <Route path="chain-loans" element={<TerminalChainPage view="loans" />} />
         <Route path="notices" element={<NoticesPage />} />
       </Route>
       <Route

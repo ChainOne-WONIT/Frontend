@@ -138,43 +138,44 @@ export type ChainPageView = 'chains' | 'loans' | 'both';
 
 /**
  * 발주 체인 조회 (단말형): 기업을 검색하면 그 기업이 들어 있는 체인을 모두 보여 줍니다.
- * 심사는 [R0400] 발주 체인 조회(view="chains")와 [R0410] 체인 대출 현황(view="loans")으로 나눠 쓰고,
- * 여신은 [L0500] 한 화면(view="both")으로 씁니다.
+ * 심사·여신 모두 발주 체인 조회(view="chains", R0400·L0500)와
+ * 체인 대출 현황(view="loans", R0410·L0510)으로 나눠 씁니다.
  * 검색 조건은 주소(?company=&tier=)에 담아, 두 화면을 오가도 그대로 남습니다.
  */
 export function TerminalChainPage({ view = 'both' }: { view?: ChainPageView }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isLoan = user?.type === 'bank' && user.role === 'loan';
-  const keys = isLoan
+  const base = isLoan ? '/bank/loan' : '/bank/review';
+  const roleKeys = isLoan
     ? {
-        code: 'L0500',
-        num: '5100',
-        title: '발주 체인 조회',
         f5: ['리스크 경보', '/bank/loan/alerts'],
-        f4: ['생산자금 대출', '/bank/loan/loans'],
+        f4: ['대출 현황', '/bank/loan/loans'],
       }
-    : view === 'loans'
+    : {
+        f5: ['기업 심사 정보', '/bank/review/companies'],
+        f4: ['한도 신청 심사', '/bank/review/applications'],
+      };
+  const keys =
+    view === 'loans'
       ? {
-          code: 'R0410',
-          num: '4200',
+          ...roleKeys,
+          code: isLoan ? 'L0510' : 'R0410',
+          num: isLoan ? '5200' : '4200',
           title: '체인 대출 현황',
-          f5: ['기업 심사 정보', '/bank/review/companies'],
-          f4: ['한도 신청 심사', '/bank/review/applications'],
         }
       : {
-          code: 'R0400',
-          num: '4100',
+          ...roleKeys,
+          code: isLoan ? 'L0500' : 'R0400',
+          num: isLoan ? '5100' : '4100',
           title: '발주 체인 조회',
-          f5: ['기업 심사 정보', '/bank/review/companies'],
-          f4: ['한도 신청 심사', '/bank/review/applications'],
         };
-  // 짝이 되는 화면 (심사만): 발주 체인 조회 ↔ 체인 대출 현황
+  // 짝이 되는 화면: 발주 체인 조회 ↔ 체인 대출 현황
   const other =
     view === 'chains'
-      ? { label: '체인 대출 현황', path: '/bank/review/chain-loans' }
+      ? { label: '체인 대출 현황', path: `${base}/chain-loans` }
       : view === 'loans'
-        ? { label: '발주 체인 조회', path: '/bank/review/chain' }
+        ? { label: '발주 체인 조회', path: `${base}/chain` }
         : null;
 
   const listId = useId();

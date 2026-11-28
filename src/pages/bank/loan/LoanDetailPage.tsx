@@ -20,8 +20,9 @@ import { GRADE_TONE } from '../review/review-format';
 import { LOAN_STATUS_LABEL, LOAN_STATUS_TONE, STAGE_TONE } from './loan-format';
 
 const LIST = '/bank/loan/loans';
+const PENDING_LIST = '/bank/loan/pending';
 
-/** [L0220] 대출 상세 (단말형). 조회 사유를 고른 뒤에만 열립니다. */
+/** [L0230] 대출 상세 (단말형). 조회 사유를 고른 뒤에만 열립니다. */
 export function LoanDetailPage() {
   const { id = '' } = useParams();
   return (
@@ -68,17 +69,19 @@ function DetailView({ id, reason }: { id: string; reason: LoanViewReason }) {
     checkLoanFlag(d.id, flagId).then(setData, (e: Error) => setMsg({ ok: false, text: e.message }));
 
   const open = d?.status === 'PENDING' || d?.status === 'HOLD';
+  /* 승인 대기·보류 건은 승인 대기 목록으로, 실행된 건은 대출 현황으로 돌아갑니다. */
+  const list = open ? PENDING_LIST : LIST;
 
   return (
     <>
       <TTitle
-        code="L0220"
-        num="2200"
+        code="L0230"
+        num="2300"
         title={d ? `대출 상세 · ${d.companyName}` : '대출 상세'}
         right={
           <>
             {d && <TTag tone={LOAN_STATUS_TONE[d.status]}>{LOAN_STATUS_LABEL[d.status]}</TTag>}
-            <button type="button" className="tb" onClick={() => navigate(LIST)}>
+            <button type="button" className="tb" onClick={() => navigate(list)}>
               목록[F3]
             </button>
           </>
@@ -269,7 +272,7 @@ function DetailView({ id, reason }: { id: string; reason: LoanViewReason }) {
 
           <TFKeys
             keys={[
-              { label: '목록', fkey: 'F3', onClick: () => navigate(LIST) },
+              { label: '목록', fkey: 'F3', onClick: () => navigate(list) },
               { label: '체인 조회', fkey: 'F6', onClick: () => navigate('/bank/loan/chain') },
               {
                 label: '보류',

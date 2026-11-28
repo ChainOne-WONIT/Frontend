@@ -251,7 +251,9 @@ export function TerminalLayout() {
               key={r.to}
               to={tabPath(r.to)}
               end={r.end}
-              className="tm-rail__item"
+              className={({ isActive }) =>
+                `tm-rail__item${isActive || r.match?.test(pathname) ? ' active' : ''}`
+              }
               title={r.hint}
             >
               <Icon name={r.icon} size={16} />
